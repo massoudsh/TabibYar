@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tabibyar.local/schemas/structured-note.json",
+  "title": "StructuredClinicalNote",
+  "description": "خروجی لایهٔ ساخت‌دهی (docs/prompts/structuring-prompt.md) — منبع واحد حقیقت برای اعتبارسنجی ai_draft قبل از نمایش به پزشک (ایشو #3).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "history",
+    "findings",
+    "differential_diagnosis_draft",
+    "treatment_plan",
+    "medications",
+    "patient_summary",
+    "warnings",
+    "follow_up",
+    "missing_or_ambiguous",
+    "parse_error"
+  ],
+  "properties": {
+    "history": { "type": "string" },
+    "findings": { "type": "string" },
+    "differential_diagnosis_draft": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "treatment_plan": { "type": "string" },
+    "medications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "dosage": { "type": "string" },
+          "instructions": { "type": "string" }
+        }
+      }
+    },
+    "patient_summary": { "type": "string" },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "follow_up": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["description"],
+        "properties": {
+          "description": { "type": "string" },
+          "due_hint": { "type": "string" }
+        }
+      }
+    },
+    "missing_or_ambiguous": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "parse_error": { "type": "boolean" }
+  }
+}

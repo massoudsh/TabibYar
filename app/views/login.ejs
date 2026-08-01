@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>ورود — طبیب‌یار</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <main class="auth-box">
+    <h1>ورود پزشک</h1>
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+    <form method="post" action="/login">
+      <label>شماره تماس<input type="text" name="phone" required /></label>
+      <label>رمز عبور<input type="password" name="password" required /></label>
+      <button type="submit">ورود</button>
+    </form>
+  </main>
+</body>
+</html>

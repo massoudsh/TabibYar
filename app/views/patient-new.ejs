@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>بیمار جدید — طبیب‌یار</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <main>
+    <h1>ثبت بیمار جدید</h1>
+    <form method="post" action="/patients">
+      <label>نام کامل<input type="text" name="full_name" required /></label>
+      <label>کد ملی (اختیاری، رمزنگاری می‌شود)<input type="text" name="national_id" /></label>
+      <label>شماره موبایل<input type="text" name="phone" required /></label>
+
+      <section class="consent-box">
+        <h2>رضایت‌نامه</h2>
+        <p><%= consentText %></p>
+        <label class="checkbox">
+          <input type="checkbox" name="consent_given" value="1" />
+          بیمار متن بالا را خوانده و رضایت می‌دهد
+        </label>
+        <label>نحوهٔ اخذ رضایت
+          <select name="consent_channel">
+            <option value="in_person">حضوری</option>
+            <option value="verbal">شفاهی</option>
+            <option value="sms">پیامکی</option>
+          </select>
+        </label>
+      </section>
+
+      <button type="submit">ثبت بیمار</button>
+    </form>
+  </main>
+</body>
+</html>

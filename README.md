@@ -59,10 +59,16 @@ flowchart LR
 | پرامپت ساخت‌دهی بالینی | [docs/prompts/structuring-prompt.md](docs/prompts/structuring-prompt.md) |
 | اسکیمای دیتابیس (DDL) | [docs/db/schema.sql](docs/db/schema.sql) |
 | ویکی (واژه‌نامه، پرسونا، مدل داده، امنیت، API) | [docs/wiki/](docs/wiki/) و [GitHub Wiki](https://github.com/massoudsh/TabibYar/wiki) |
+| پیاده‌سازی MVP (Node.js/Express) | [app/](app/) — نگاشت کامل ایشو→کد در [app/README.md](app/README.md) |
+| اسناد تحقیقاتی (STT/پیامک/حقوقی/پایلوت) | [docs/research/](docs/research/) |
 
 ## وضعیت فعلی
 
-فاز طراحی/مستندسازی — کدنویسی هنوز شروع نشده. مرحلهٔ فعلی طبق نقشهٔ راه: **M1 — هستهٔ ساخت‌دهی**.
+پیاده‌سازی اولیهٔ MVP انجام شد — سرور Express با پایپ‌لاین ساخت‌دهی، کلاینت وب پزشک
+(ورود/ثبت ویزیت/بازبینی/تأیید)، رمزنگاری در حالت ذخیره، Audit Log، RBAC پایه، صف
+پردازش ناهمزمان و ارسال پیامک بعد از تأیید. جزئیات کامل و نحوهٔ اجرا در [app/README.md](app/README.md).
+موارد نیازمند تصمیم/اقدام انسانی (انتخاب نهایی سرویس STT/پیامک، بررسی حقوقی، انتخاب
+پزشکان پایلوت) در [docs/research/](docs/research/) مستند شده‌اند.
 
 ## مزیت رقابتی
 

@@ -1,0 +1,24 @@
+{
+  "name": "tabibyar-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "طبیب‌یار — MVP سرور: پایپ‌لاین ساخت‌دهی، کلاینت وب پزشک، فروشگاه دادهٔ بالینی",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "migrate": "node src/db/migrate.js",
+    "seed": "node src/db/seed.js",
+    "worker": "node src/services/queueWorker.js",
+    "test": "node --test tests/"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
+  }
+}

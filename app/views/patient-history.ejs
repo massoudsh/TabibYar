@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>پروندهٔ <%= patient.full_name %> — طبیب‌یار</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <main>
+    <h1><%= patient.full_name %></h1>
+    <p>موبایل: <%= patient.phone %> — رضایت: <%= patient.consent_recorded_at ? 'ثبت‌شده' : 'ثبت‌نشده' %></p>
+
+    <h2>تاریخچهٔ ویزیت‌ها</h2>
+    <% if (!visits.length) { %>
+      <p>هنوز ویزیتی ثبت نشده است.</p>
+    <% } %>
+    <ul class="visit-list">
+      <% visits.forEach(function(v) { %>
+        <li>
+          <a href="/visits/<%= v.id %>/review">
+            <%= new Date(v.visit_date).toLocaleDateString('fa-IR') %> —
+            وضعیت: <%= v.status %>
+            <% if (v.approved_content) { %> — <%= v.approved_content.history %><% } %>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  </main>
+</body>
+</html>

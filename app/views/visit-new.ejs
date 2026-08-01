@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>ویزیت جدید — طبیب‌یار</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <main>
+    <h1>ثبت خلاصهٔ ویزیت</h1>
+    <p>تخصص: <%= specialty %></p>
+    <form method="post" action="/visits">
+      <label>بیمار
+        <select name="patient_id" required>
+          <% patients.forEach(function(p) { %>
+            <option value="<%= p.id %>"><%= p.full_name %></option>
+          <% }) %>
+        </select>
+      </label>
+      <a href="/patients/new">+ بیمار جدید</a>
+
+      <label>خلاصهٔ ویزیت (متن آزاد — ورودی صوتی در نسخهٔ بعد از طریق آپلود/STT اضافه می‌شود)
+        <textarea name="raw_input" rows="8" required placeholder="مثلاً: بیمار دیابت نوع دو، قند ناشتا ۲۱۰ بود..."></textarea>
+      </label>
+
+      <button type="submit">ثبت و ارسال به پایپ‌لاین ساخت‌دهی</button>
+    </form>
+  </main>
+</body>
+</html>

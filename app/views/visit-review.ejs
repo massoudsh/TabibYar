@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>بازبینی ویزیت — طبیب‌یار</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <main>
+    <h1>بازبینی پیش‌نویس ویزیت</h1>
+    <p>وضعیت: <strong><%= visit.status %></strong></p>
+
+    <%- include('partials/disclaimer', { text: disclaimer }) %>
+
+    <details>
+      <summary>متن خام ثبت‌شده توسط پزشک</summary>
+      <p><%= visit.raw_input %></p>
+    </details>
+
+    <% if (changesSincePrevious.hasPrevious) { %>
+      <section class="changes-box">
+        <h2>خلاصهٔ تغییرات از ویزیت قبلی</h2>
+        <% if (changesSincePrevious.recurringComplaints.length) { %>
+          <p>شکایت‌های تکرارشونده: <%= changesSincePrevious.recurringComplaints.join('، ') %></p>
+        <% } %>
+        <% if (changesSincePrevious.medicationsAdded.length) { %>
+          <p>داروهای جدید: <%= changesSincePrevious.medicationsAdded.join('، ') %></p>
+        <% } %>
+        <% if (changesSincePrevious.medicationsStopped.length) { %>
+          <p>داروهای قطع‌شده: <%= changesSincePrevious.medicationsStopped.join('، ') %></p>
+        <% } %>
+      </section>
+    <% } %>
+
+    <% if (!visit.ai_draft) { %>
+      <p>پیش‌نویس هنوز در حال پردازش است. صفحه را رفرش کنید.</p>
+    <% } else { %>
+      <% const d = visit.ai_draft; %>
+      <% if (d.missing_or_ambiguous && d.missing_or_ambiguous.length) { %>
+        <div class="warning-box">
+          <strong>موارد مبهم/ناقص (نیازمند تکمیل پزشک):</strong>
+          <ul><% d.missing_or_ambiguous.forEach(function(m){ %><li><%= m %></li><% }) %></ul>
+        </div>
+      <% } %>
+
+      <form id="draft-form" data-visit-id="<%= visit.id %>">
+        <label>شرح‌حال (history)
+          <textarea name="history" rows="3"><%= d.history %></textarea>
+        </label>
+        <label>یافته‌ها (findings)
+          <textarea name="findings" rows="2"><%= d.findings %></textarea>
+        </label>
+        <label class="ddx-label">
+          تشخیص‌های احتمالی <span class="badge-draft" title="<%= ddxDisclaimer %>">پیش‌نویس</span>
+          <textarea name="differential_diagnosis_draft" rows="2"><%= (d.differential_diagnosis_draft || []).join('\n') %></textarea>
+        </label>
+        <label>برنامهٔ درمان (treatment_plan)
+          <textarea name="treatment_plan" rows="2"><%= d.treatment_plan %></textarea>
+        </label>
+        <label>داروها — یک مورد در هر خط، به‌صورت «نام | دوز | دستور مصرف»
+          <textarea name="medications" rows="3"><%= (d.medications||[]).map(m => [m.name, m.dosage||'', m.instructions||''].join(' | ')).join('\n') %></textarea>
+        </label>
+        <label>خلاصه برای بیمار (patient_summary)
+          <textarea name="patient_summary" rows="3"><%= d.patient_summary %></textarea>
+        </label>
+        <label>هشدارها — یک مورد در هر خط
+          <textarea name="warnings" rows="2"><%= (d.warnings||[]).join('\n') %></textarea>
+        </label>
+        <label>پیگیری‌ها — یک مورد در هر خط
+          <textarea name="follow_up" rows="2"><%= (d.follow_up||[]).map(f => f.description + (f.due_hint ? ' | ' + f.due_hint : '')).join('\n') %></textarea>
+        </label>
+
+        <button type="button" id="save-draft">ذخیرهٔ ویرایش</button>
+        <button type="button" id="approve-btn">تأیید نهایی پزشک</button>
+      </form>
+
+      <% if (visit.status === 'approved') { %>
+        <form method="post" action="/visits/<%= visit.id %>/send-sms">
+          <button type="submit">ارسال خلاصه به بیمار (پیامک)</button>
+        </form>
+      <% } %>
+    <% } %>
+  </main>
+  <script src="/js/review.js"></script>
+</body>
+</html>
