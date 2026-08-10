@@ -1,18 +1,166 @@
-body { font-family: Tahoma, sans-serif; background: #f5f6f8; margin: 0; direction: rtl; }
-main { max-width: 720px; margin: 2rem auto; background: #fff; padding: 1.5rem 2rem; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
-.auth-box { max-width: 360px; }
-h1 { color: #1a3c5e; }
-label { display: block; margin: 0.75rem 0; font-weight: bold; }
-input, textarea, select { width: 100%; box-sizing: border-box; padding: 0.5rem; margin-top: 0.25rem; font-family: inherit; border: 1px solid #ccc; border-radius: 4px; }
-button { margin-top: 1rem; margin-inline-end: 0.5rem; padding: 0.6rem 1.2rem; background: #1a7f5a; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-button:hover { background: #145c41; }
-.error { color: #b00020; }
-.disclaimer { background: #fff3cd; border: 1px solid #ffe69c; padding: 0.75rem 1rem; border-radius: 6px; margin: 1rem 0; }
-.warning-box { background: #fde2e1; border: 1px solid #f5a8a5; padding: 0.75rem 1rem; border-radius: 6px; margin: 1rem 0; }
-.changes-box { background: #e7f1ff; border: 1px solid #b6d4fe; padding: 0.75rem 1rem; border-radius: 6px; margin: 1rem 0; }
-.consent-box { background: #f0f0f0; padding: 1rem; border-radius: 6px; margin: 1rem 0; }
-.badge-draft { background: #ffb703; color: #000; font-size: 0.75rem; padding: 0.1rem 0.5rem; border-radius: 999px; margin-inline-start: 0.5rem; }
-.visit-list { list-style: none; padding: 0; }
-.visit-list li { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+/* طبیب‌یار — استایل کلاینت وب پزشک (ایشو #30) */
+
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-primary: #1a7f5a;
+  --color-primary-dark: #145c41;
+  --color-accent: #1a3c5e;
+  --color-bg: #f3f5f7;
+  --color-surface: #fff;
+  --color-border: #e2e5ea;
+  --color-text: #24292f;
+  --color-text-muted: #667085;
+  --color-warning-bg: #fff3cd;
+  --color-warning-border: #ffe69c;
+  --color-danger-bg: #fde2e1;
+  --color-danger-border: #f5a8a5;
+  --color-info-bg: #e7f1ff;
+  --color-info-border: #b6d4fe;
+  --color-rag-bg: #f1f0fb;
+  --color-rag-border: #cfc9f2;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 4px rgba(16, 24, 40, .08);
+  --content-width: 760px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+  direction: rtl;
+  line-height: 1.7;
+}
+
+a { color: var(--color-primary); }
+
+/* ---------- هدر/ناوبری مشترک ---------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 1rem 1.5rem 0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.app-header .brand {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.app-nav { display: flex; align-items: center; gap: 1.25rem; }
+.app-nav a { font-size: .9rem; color: var(--color-text-muted); text-decoration: none; }
+.app-nav a:hover { color: var(--color-primary); }
+.logout-form { margin: 0; }
+.logout-form button {
+  margin: 0; padding: .35rem .9rem; font-size: .85rem;
+  background: transparent; color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+.logout-form button:hover { background: var(--color-danger-bg); color: #b00020; border-color: var(--color-danger-border); }
+
+/* ---------- ساختار اصلی ---------- */
+main {
+  max-width: var(--content-width);
+  margin: 1.25rem auto 3rem;
+  background: var(--color-surface);
+  padding: 1.75rem 2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.auth-box { max-width: 380px; margin-top: 4rem; }
+
+h1 { color: var(--color-accent); margin-top: 0; font-size: 1.4rem; }
+h2 { color: var(--color-accent); font-size: 1.05rem; }
+.subtitle { color: var(--color-text-muted); margin-top: -.5rem; font-size: .9rem; }
+
+label { display: block; margin: 0.9rem 0; font-weight: 600; font-size: .92rem; }
+input, textarea, select {
+  width: 100%; box-sizing: border-box; padding: 0.6rem 0.7rem; margin-top: 0.35rem;
+  font-family: inherit; font-size: .95rem; font-weight: 400;
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: #fbfbfc; transition: border-color .15s, background .15s;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none; border-color: var(--color-primary); background: #fff;
+}
+
+button {
+  margin-top: 1rem; margin-inline-end: 0.5rem; padding: 0.6rem 1.3rem;
+  background: var(--color-primary); color: #fff; border: none; border-radius: var(--radius-sm);
+  font-family: inherit; font-size: .92rem; font-weight: 600; cursor: pointer;
+  transition: background .15s;
+}
+button:hover { background: var(--color-primary-dark); }
+button:disabled { background: #a8c9bd; cursor: progress; }
+button.btn-secondary { background: #fff; color: var(--color-text); border: 1px solid var(--color-border); }
+button.btn-secondary:hover { background: #f3f5f7; }
+
+.error { color: #b00020; font-size: .9rem; }
+
+/* ---------- جعبه‌های وضعیت/هشدار ---------- */
+.disclaimer, .warning-box, .changes-box, .consent-box, .rag-box, .rag-ask-box {
+  padding: 0.85rem 1.1rem; border-radius: var(--radius-sm); margin: 1.1rem 0; font-size: .92rem;
+}
+.disclaimer { background: var(--color-warning-bg); border: 1px solid var(--color-warning-border); }
+.warning-box { background: var(--color-danger-bg); border: 1px solid var(--color-danger-border); }
+.changes-box { background: var(--color-info-bg); border: 1px solid var(--color-info-border); }
+.consent-box { background: #f7f7f8; border: 1px solid var(--color-border); }
+.warning-box ul, .changes-box p { margin: .4rem 0; }
+
+.badge-draft {
+  background: #ffb703; color: #000; font-size: 0.72rem; font-weight: 700;
+  padding: 0.15rem 0.55rem; border-radius: 999px; margin-inline-start: 0.5rem;
+}
+.status-badge {
+  display: inline-block; font-size: .75rem; font-weight: 700; padding: .2rem .65rem;
+  border-radius: 999px; background: var(--color-info-bg); color: #0b4a8f;
+}
+.status-badge[data-status="approved"] { background: #dcf6e6; color: var(--color-primary-dark); }
+.status-badge[data-status="draft"] { background: #f1f1f3; color: #555; }
+
+/* ---------- فهرست‌ها ---------- */
+.visit-list, .patients-list { list-style: none; padding: 0; margin: 0; }
+.visit-list li, .patients-list li {
+  padding: 0.75rem 0; border-bottom: 1px solid var(--color-border);
+}
+.visit-list li:last-child, .patients-list li:last-child { border-bottom: none; }
+.visit-list a, .patients-list a { text-decoration: none; color: var(--color-text); display: block; }
+.visit-list a:hover, .patients-list a:hover { color: var(--color-primary); }
+.list-empty { color: var(--color-text-muted); font-size: .92rem; }
+.list-meta { color: var(--color-text-muted); font-size: .85rem; }
+
 .checkbox { display: flex; align-items: center; gap: 0.5rem; font-weight: normal; }
-.checkbox input { width: auto; }
+.checkbox input { width: auto; margin-top: 0; }
+
+/* ---------- دستیار RAG (ایشو #28) ---------- */
+.rag-box { background: var(--color-rag-bg); border: 1px solid var(--color-rag-border); }
+.rag-box ul { margin: .5rem 0 0; padding-inline-start: 1.1rem; }
+.rag-box li { margin: .3rem 0; }
+.rag-source { color: var(--color-text-muted); font-size: .82rem; }
+.rag-ask-box { background: #fafafe; border: 1px solid var(--color-border); }
+.rag-disclaimer { color: var(--color-text-muted); font-size: .82rem; margin: .2rem 0 .6rem; }
+.rag-answer {
+  margin-top: 0.9rem; padding: 0.8rem 1rem; background: #fff; border: 1px solid var(--color-rag-border);
+  border-radius: var(--radius-sm); font-size: .92rem;
+}
+.rag-answer .rag-sources { color: var(--color-text-muted); font-size: .8rem; margin-top: .5rem; }
+
+/* ---------- جزئیات/متن خام ---------- */
+details { margin: 0.9rem 0; font-size: .9rem; color: var(--color-text-muted); }
+details summary { cursor: pointer; color: var(--color-text); font-weight: 600; }
+details p { white-space: pre-wrap; }
+
+/* ---------- ریسپانسیو ---------- */
+@media (max-width: 640px) {
+  main { margin: 0.5rem auto 2rem; padding: 1.25rem 1.1rem; border-radius: 0; }
+  .app-header { padding: 0.85rem 1.1rem 0; }
+  .app-nav { gap: .75rem; }
+}

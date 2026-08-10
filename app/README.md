@@ -48,6 +48,19 @@ npm test   # تست‌های واحد بدون نیاز به دیتابیس وا
 | #25 پایلوت | `src/db/seed.js` + `docs/research/pilot-recruitment-plan.md` |
 | #26 معیارهای موفقیت | `docs/research/success-metrics.md` |
 | #27 جمع‌آوری فیدبک | `docs/research/feedback-collection-plan.md` |
+| #28 دستیار RAG | `src/services/rag/` (knowledgeStore + retriever + ragAgent) + `src/knowledge/*.md` + `POST /visits/:id/ask` |
+| #29 بازآرایی پوشهٔ app/ | همین جدول + ساختار زیرپوشه‌ای `src/services/rag/` و `src/knowledge/` |
+| #30 بهبود UI/UX | `views/partials/header.ejs` + `public/css/style.css` + `views/patients-list.ejs` |
+
+## دستیار RAG (ایشو #28)
+
+بعد از هر ساخت‌دهی موفق (`services/queueWorker.js`)، دستیار RAG پایگاه دانش داخلی
+(`src/knowledge/*.md`) را با بازیابی کلیدواژه‌محور (`services/rag/retriever.js`) جست‌وجو
+می‌کند و نکات یادآوری/مستندسازی مرتبط را در `clinical_notes.rag_insights` ذخیره می‌کند —
+این نکات در صفحهٔ بازبینی ویزیت نمایش داده می‌شوند. علاوه‌بر آن، پزشک می‌تواند از طریق
+`POST /visits/:id/ask` سؤال آزاد بپرسد؛ پاسخ همیشه مبتنی بر منبع است، هرگز تشخیص یا تجویز
+نمی‌دهد (`REFUSAL_KEYWORDS` در `ragAgent.js`) و در Audit Log با `action='rag_query'` ثبت
+می‌شود. برای افزودن سند جدید به پایگاه دانش، `src/knowledge/README.md` را ببینید.
 
 ## محدودیت‌های شناخته‌شده (نیازمند تصمیم/اقدام انسانی، نه کد)
 

@@ -2,6 +2,7 @@
 // تا ساعات شلوغ مطب باعث انسداد درخواست‌های HTTP نشود.
 import { claimNextJob, markJobDone, markJobFailed } from './queue.js';
 import { structureVisit } from './structuring.js';
+import { getGroundedInsights } from './rag/ragAgent.js';
 import { pool } from '../db/pool.js';
 import { writeAuditLog } from '../lib/audit.js';
 
@@ -10,9 +11,13 @@ const POLL_INTERVAL_MS = Number(process.env.QUEUE_POLL_INTERVAL_MS || 2000);
 async function handleStructureVisit(job) {
   const { visitId, specialty, rawInput, previousVisitSummary } = job.payload;
   const draft = await structureVisit({ specialty, rawInput, previousVisitSummary });
-  await pool.query(`UPDATE clinical_notes SET ai_draft = $2 WHERE visit_id = $1`, [
+  // ایشو #28: بعد از ساخت‌دهی موفق، دستیار RAG نکات مرتبط از پایگاه دانش داخلی را
+  // پیوست می‌کند (بدون تشخیص/تجویز) تا در صفحهٔ بازبینی به پزشک نمایش داده شود.
+  const ragInsights = await getGroundedInsights({ specialty, structuredNote: draft });
+  await pool.query(`UPDATE clinical_notes SET ai_draft = $2, rag_insights = $3 WHERE visit_id = $1`, [
     visitId,
     JSON.stringify(draft),
+    JSON.stringify(ragInsights),
   ]);
   await writeAuditLog({
     entityType: 'clinical_note',

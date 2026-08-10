@@ -10,6 +10,16 @@ import { CONSENT_TEXT, CONSENT_TEXT_VERSION } from '../lib/disclaimers.js';
 export const patientsRouter = Router();
 patientsRouter.use(authenticate);
 
+// ایشو #29 (بازآرایی/UX): فهرست بیماران کلینیک — نقطهٔ ورود ناوبری اصلی به پروندهٔ هر بیمار.
+patientsRouter.get('/patients', async (req, res) => {
+  const { rows: patients } = await pool.query(
+    `SELECT id, full_name, phone, consent_recorded_at
+     FROM patients WHERE clinic_id = $1 ORDER BY full_name`,
+    [req.user.clinicId]
+  );
+  res.render('patients-list', { patients });
+});
+
 patientsRouter.get('/patients/new', (req, res) => {
   res.render('patient-new', { consentText: CONSENT_TEXT });
 });

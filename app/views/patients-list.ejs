@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>بیماران — طبیب‌یار</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main>
+    <h1>بیماران کلینیک</h1>
+    <p><a href="/patients/new">+ بیمار جدید</a></p>
+
+    <% if (!patients.length) { %>
+      <p class="list-empty">هنوز بیماری ثبت نشده است.</p>
+    <% } %>
+    <ul class="patients-list">
+      <% patients.forEach(function(p) { %>
+        <li>
+          <a href="/patients/<%= p.id %>">
+            <strong><%= p.full_name %></strong>
+            <div class="list-meta">
+              موبایل: <%= p.phone %> —
+              رضایت: <%= p.consent_recorded_at ? 'ثبت‌شده' : 'ثبت‌نشده' %>
+            </div>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  </main>
+</body>
+</html>

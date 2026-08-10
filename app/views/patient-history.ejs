@@ -2,25 +2,34 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>پروندهٔ <%= patient.full_name %> — طبیب‌یار</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
+  <%- include('partials/header') %>
   <main>
     <h1><%= patient.full_name %></h1>
-    <p>موبایل: <%= patient.phone %> — رضایت: <%= patient.consent_recorded_at ? 'ثبت‌شده' : 'ثبت‌نشده' %></p>
+    <p class="subtitle">
+      موبایل: <%= patient.phone %> —
+      رضایت: <%= patient.consent_recorded_at ? 'ثبت‌شده' : 'ثبت‌نشده' %>
+    </p>
+
+    <p><a href="/visits/new">+ ثبت ویزیت جدید</a></p>
 
     <h2>تاریخچهٔ ویزیت‌ها</h2>
     <% if (!visits.length) { %>
-      <p>هنوز ویزیتی ثبت نشده است.</p>
+      <p class="list-empty">هنوز ویزیتی ثبت نشده است.</p>
     <% } %>
     <ul class="visit-list">
       <% visits.forEach(function(v) { %>
         <li>
           <a href="/visits/<%= v.id %>/review">
-            <%= new Date(v.visit_date).toLocaleDateString('fa-IR') %> —
-            وضعیت: <%= v.status %>
-            <% if (v.approved_content) { %> — <%= v.approved_content.history %><% } %>
+            <strong><%= new Date(v.visit_date).toLocaleDateString('fa-IR') %></strong>
+            <span class="status-badge" data-status="<%= v.status %>"><%= v.status %></span>
+            <% if (v.approved_content) { %>
+              <div class="list-meta"><%= v.approved_content.history %></div>
+            <% } %>
           </a>
         </li>
       <% }) %>

@@ -2,13 +2,17 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>بازبینی ویزیت — طبیب‌یار</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
+  <%- include('partials/header') %>
   <main>
     <h1>بازبینی پیش‌نویس ویزیت</h1>
-    <p>وضعیت: <strong><%= visit.status %></strong></p>
+    <p class="subtitle">
+      وضعیت: <span class="status-badge" data-status="<%= visit.status %>"><%= visit.status %></span>
+    </p>
 
     <%- include('partials/disclaimer', { text: disclaimer }) %>
 
@@ -43,6 +47,18 @@
         </div>
       <% } %>
 
+      <% if (visit.rag_insights && visit.rag_insights.insights && visit.rag_insights.insights.length) { %>
+        <section class="rag-box">
+          <h2>نکات مرتبط از پایگاه دانش (دستیار RAG)</h2>
+          <p class="rag-disclaimer">این نکات صرفاً یادآوری/مستندسازی است، نه تشخیص یا تجویز — تصمیم نهایی با پزشک است.</p>
+          <ul>
+            <% visit.rag_insights.insights.forEach(function(i) { %>
+              <li><%= i.note %> <span class="rag-source">— منبع: <%= i.sourceHeading %></span></li>
+            <% }) %>
+          </ul>
+        </section>
+      <% } %>
+
       <form id="draft-form" data-visit-id="<%= visit.id %>">
         <label>شرح‌حال (history)
           <textarea name="history" rows="3"><%= d.history %></textarea>
@@ -70,7 +86,7 @@
           <textarea name="follow_up" rows="2"><%= (d.follow_up||[]).map(f => f.description + (f.due_hint ? ' | ' + f.due_hint : '')).join('\n') %></textarea>
         </label>
 
-        <button type="button" id="save-draft">ذخیرهٔ ویرایش</button>
+        <button type="button" id="save-draft" class="btn-secondary">ذخیرهٔ ویرایش</button>
         <button type="button" id="approve-btn">تأیید نهایی پزشک</button>
       </form>
 
@@ -79,8 +95,19 @@
           <button type="submit">ارسال خلاصه به بیمار (پیامک)</button>
         </form>
       <% } %>
+
+      <section class="rag-ask-box">
+        <h2>پرسش از دستیار هوشمند</h2>
+        <p class="rag-disclaimer">فقط برای مستندسازی و یادآوری مبتنی بر پایگاه دانش داخلی — تشخیص یا تجویز نمی‌دهد.</p>
+        <form id="rag-ask-form" data-visit-id="<%= visit.id %>">
+          <textarea name="question" rows="2" placeholder="مثلاً: برای پیگیری دیابت چه مواردی را باید حتماً ثبت کنم؟"></textarea>
+          <button type="submit">پرسیدن</button>
+        </form>
+        <div id="rag-answer" class="rag-answer" hidden></div>
+      </section>
     <% } %>
   </main>
   <script src="/js/review.js"></script>
+  <script src="/js/rag-assistant.js"></script>
 </body>
 </html>

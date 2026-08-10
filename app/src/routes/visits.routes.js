@@ -8,6 +8,7 @@ import { enqueue } from '../services/queue.js';
 import { validateStructuredNote } from '../services/structuring.js';
 import { getPreviousApprovedVisit, diffVisits } from '../services/followup.js';
 import { getSMSProvider, buildPatientSummarySMS } from '../services/smsAdapter.js';
+import { answerQuestion } from '../services/rag/ragAgent.js';
 import { AI_DRAFT_DISCLAIMER, DIFFERENTIAL_DIAGNOSIS_DISCLAIMER } from '../lib/disclaimers.js';
 
 export const visitsRouter = Router();
@@ -68,7 +69,7 @@ visitsRouter.post('/visits', async (req, res) => {
 // ایشو #11: خلاصهٔ تغییرات از ویزیت قبلی در همین صفحه نمایش داده می‌شود.
 visitsRouter.get('/visits/:id/review', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT v.id, v.patient_id, v.status, cn.raw_input, cn.ai_draft, cn.approved_content
+    `SELECT v.id, v.patient_id, v.status, cn.raw_input, cn.ai_draft, cn.approved_content, cn.rag_insights
      FROM visits v JOIN clinical_notes cn ON cn.visit_id = v.id
      WHERE v.id = $1 AND v.clinician_id = $2`,
     [req.params.id, req.user.sub]
@@ -184,4 +185,29 @@ visitsRouter.post('/visits/:id/send-sms', async (req, res) => {
   });
 
   res.redirect(`/visits/${req.params.id}/review`);
+});
+
+// ایشو #28: پرسش تعاملی پزشک از دستیار RAG — پاسخ فقط مبتنی بر پایگاه دانش داخلی
+// است، هرگز تشخیص یا تجویز نمی‌دهد (services/rag/ragAgent.js).
+visitsRouter.post('/visits/:id/ask', async (req, res) => {
+  const { question } = req.body;
+  if (!question?.trim()) return res.status(400).json({ error: 'question الزامی است' });
+
+  const { rows } = await pool.query(
+    'SELECT id FROM visits WHERE id = $1 AND clinician_id = $2',
+    [req.params.id, req.user.sub]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'ویزیت یافت نشد' });
+
+  const result = await answerQuestion({ specialty: req.user.specialty, question });
+
+  await writeAuditLog({
+    entityType: 'visit',
+    entityId: req.params.id,
+    action: 'rag_query',
+    actorId: req.user.sub,
+    metadata: { question },
+  });
+
+  res.json(result);
 });

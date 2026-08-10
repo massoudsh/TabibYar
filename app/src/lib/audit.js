@@ -1,7 +1,8 @@
 // ایشو #15: Audit Log کامل برای هر تغییر روی پرونده.
 import { pool } from '../db/pool.js';
 
-const VALID_ACTIONS = new Set(['created', 'edited', 'approved', 'sent_to_patient', 'viewed']);
+// 'rag_query' ایشو #28: پرسش پزشک از دستیار RAG — طبق migration 004_rag_agent.sql.
+const VALID_ACTIONS = new Set(['created', 'edited', 'approved', 'sent_to_patient', 'viewed', 'rag_query']);
 
 /**
  * ثبت یک رکورد Audit. هرگز نباید کل عملیات را به‌خاطر خطای audit متوقف کند در حالت viewed،
