@@ -61,6 +61,7 @@ flowchart LR
 | ویکی (واژه‌نامه، پرسونا، مدل داده، امنیت، API) | [docs/wiki/](docs/wiki/) و [GitHub Wiki](https://github.com/massoudsh/TabibYar/wiki) |
 | پیاده‌سازی MVP (Node.js/Express) | [app/](app/) — نگاشت کامل ایشو→کد در [app/README.md](app/README.md) |
 | اسناد تحقیقاتی (STT/پیامک/حقوقی/پایلوت) | [docs/research/](docs/research/) |
+| سرویس STT فارسی خودمیزبان | [stt-service/](stt-service/) — مدل [`whisper-persian`](https://huggingface.co/Paulwalker4884/whisper-persian) |
 
 ## وضعیت فعلی
 
@@ -71,7 +72,11 @@ flowchart LR
 پیشنهاد می‌دهد و به پزشک اجازهٔ پرسش تعاملی می‌دهد — همیشه با استناد به منبع و بدون
 تشخیص/تجویز. کلاینت وب با ناوبری مشترک و طراحی بصری یکپارچه به‌روزرسانی شده است.
 جزئیات کامل و نحوهٔ اجرا در [app/README.md](app/README.md).
-موارد نیازمند تصمیم/اقدام انسانی (انتخاب نهایی سرویس STT/پیامک، بررسی حقوقی، انتخاب
+برای گفتار-به-متن فارسی (ایشو #2)، سرویس خودمیزبان [stt-service/](stt-service/) با مدل
+متن‌باز [`Paulwalker4884/whisper-persian`](https://huggingface.co/Paulwalker4884/whisper-persian)
+(فاین‌تیون LoRA فارسی روی Whisper-base، Apache-2.0) پیاده‌سازی و از طریق contract موجود
+(`STT_PROVIDER=http`) به اپ متصل شده — تست عملی دقت روی صدای واقعی پزشکان همچنان باز است.
+سایر موارد نیازمند تصمیم/اقدام انسانی (انتخاب نهایی سرویس پیامک، بررسی حقوقی، انتخاب
 پزشکان پایلوت) در [docs/research/](docs/research/) مستند شده‌اند.
 
 ## مزیت رقابتی

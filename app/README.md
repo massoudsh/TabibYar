@@ -25,7 +25,7 @@ npm test   # تست‌های واحد بدون نیاز به دیتابیس وا
 | ایشو | پیاده‌سازی |
 |---|---|
 | #1 پایپ‌لاین ساخت‌دهی | `src/services/structuring.js` + `src/services/queueWorker.js` |
-| #2 انتخاب STT | `src/services/sttAdapter.js` (contract + mock) + `docs/research/stt-vendor-comparison.md` |
+| #2 انتخاب STT | `src/services/sttAdapter.js` (contract + mock) + سرویس خودمیزبان [`stt-service/`](../stt-service/) (مدل [`Paulwalker4884/whisper-persian`](https://huggingface.co/Paulwalker4884/whisper-persian)) + `docs/research/stt-vendor-comparison.md` |
 | #3 JSON Schema | `src/schemas/structuredNote.schema.json` |
 | #4 پرامپت اختصاصی تخصص | `src/services/prompts.js` |
 | #5 علامت‌گذاری موارد مبهم | `missing_or_ambiguous` در schema + نمایش برجسته در `views/visit-review.ejs` |
