@@ -15,14 +15,20 @@
 | Ippanel | جایگزین معتبر با قیمت رقابتی و پشتیبانی وب‌هوک وضعیت تحویل. |
 | WhatsApp Business API | برای فاز بعد (طبق `docs/architecture.md`)؛ نیاز به تأیید شماره کسب‌وکار و ریسک تحریم/دسترسی دارد — فعلاً خارج از scope فاز اول. |
 
-## توصیه
+## تصمیم نهایی — Kavenegar
 
-شروع با **Kavenegar** به دلیل مستندات فارسی و سادگی onboarding؛ **Ippanel** به‌عنوان
-جایگزین fallback نگه داشته شود (کد هر دو در `src/services/smsAdapter.js` آماده است، فقط
-با `SMS_PROVIDER=kavenegar|ippanel` و `SMS_API_KEY` سوییچ می‌شود). انتخاب نهایی و
-قرارداد با تیم عملیات/مالی است.
+**سرویس انتخاب‌شده: Kavenegar.** دلیل: مستندات فارسی کامل، سادگی onboarding، و
+پرکاربردترین گزینه در استارتاپ‌های ایرانی (پشتیبانی محلی بهتر برای پیگیری مشکلات
+تحویل). **Ippanel** به‌عنوان جایگزین fallback در کد نگه داشته می‌شود (کد هر دو در
+`src/services/smsAdapter.js` آماده است، فقط با `SMS_PROVIDER=kavenegar|ippanel` و
+`SMS_API_KEY` سوییچ می‌شود).
+
+باقیمانده — اقدام انسانی/میدانی (خارج از دامنهٔ کد): ثبت‌نام حساب Kavenegar، خرید
+بستهٔ حجمی/تأیید نرخ، و دریافت شمارهٔ فرستندهٔ اختصاصی (sender line) با تیم
+عملیات/مالی — سپس مقداردهی `SMS_API_KEY`/`SMS_SENDER` در `.env` پروداکشن کافی است.
 
 ## وضعیت پیاده‌سازی
 
 `getSMSProvider()` در `src/services/smsAdapter.js` — `mock` (پیش‌فرض توسعه)،
-`kavenegar`، `ippanel`. قالب پیامک طبق ایشو #18 در `buildPatientSummarySMS()`.
+`kavenegar` (پیش‌فرض پروداکشن)، `ippanel` (fallback). قالب پیامک طبق ایشو #18 در
+`buildPatientSummarySMS()`.

@@ -39,7 +39,7 @@ npm test   # تست‌های واحد بدون نیاز به دیتابیس وا
 | #14 رمزنگاری در حالت ذخیره | `src/lib/crypto.js` (AES-256-GCM روی `national_id_encrypted`) |
 | #15 Audit Log | `src/lib/audit.js` — فراخوانی‌شده در همهٔ mutationهای حساس |
 | #16/#18 ارسال پیامک خلاصه | `POST /visits/:id/send-sms` + `smsAdapter.buildPatientSummarySMS` |
-| #17 انتخاب سرویس پیامک | `src/services/smsAdapter.js` (Kavenegar/Ippanel/mock) + `docs/research/sms-vendor-comparison.md` |
+| #17 انتخاب سرویس پیامک | تصمیم نهایی: **Kavenegar** — `src/services/smsAdapter.js` (kavenegar/ippanel/mock) + `docs/research/sms-vendor-comparison.md`؛ فقط ثبت‌نام حساب/خط فرستنده با تیم عملیات باقی مانده |
 | #19 بررسی حقوقی محل نگهداری داده | `docs/research/legal-data-residency.md` |
 | #20 رضایت صریح بیمار | `src/lib/disclaimers.js` (CONSENT_TEXT) + `views/patient-new.ejs` + ستون `consent_version` |
 | #21 RBAC پایه | `src/middleware/rbac.js` + `src/routes/admin.routes.js` (نمونهٔ enforcement) |

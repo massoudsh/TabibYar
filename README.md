@@ -76,8 +76,10 @@ flowchart LR
 متن‌باز [`Paulwalker4884/whisper-persian`](https://huggingface.co/Paulwalker4884/whisper-persian)
 (فاین‌تیون LoRA فارسی روی Whisper-base، Apache-2.0) پیاده‌سازی و از طریق contract موجود
 (`STT_PROVIDER=http`) به اپ متصل شده — تست عملی دقت روی صدای واقعی پزشکان همچنان باز است.
-سایر موارد نیازمند تصمیم/اقدام انسانی (انتخاب نهایی سرویس پیامک، بررسی حقوقی، انتخاب
-پزشکان پایلوت) در [docs/research/](docs/research/) مستند شده‌اند.
+برای پیامک (ایشو #17)، سرویس نهایی **Kavenegar** انتخاب شد (`SMS_PROVIDER=kavenegar` در
+`src/services/smsAdapter.js`، جزئیات در [docs/research/sms-vendor-comparison.md](docs/research/sms-vendor-comparison.md))؛
+فقط ثبت‌نام حساب و دریافت خط فرستندهٔ اختصاصی با تیم عملیات/مالی باقی مانده. سایر موارد
+نیازمند تصمیم/اقدام انسانی (بررسی حقوقی، انتخاب پزشکان پایلوت) در [docs/research/](docs/research/) مستند شده‌اند.
 
 ## مزیت رقابتی
 
