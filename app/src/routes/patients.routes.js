@@ -72,9 +72,9 @@ patientsRouter.get('/patients/:id', async (req, res) => {
     `SELECT v.id, v.visit_date, v.status, cn.approved_content
      FROM visits v
      LEFT JOIN clinical_notes cn ON cn.visit_id = v.id
-     WHERE v.patient_id = $1
-     ORDER BY v.visit_date DESC`,
-    [patient.id]
+      WHERE v.patient_id = $1 AND v.clinician_id = $2
+      ORDER BY v.visit_date DESC`,
+    [patient.id, req.user.sub]
   );
 
   await writeAuditLog({

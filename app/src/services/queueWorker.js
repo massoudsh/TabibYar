@@ -14,18 +14,39 @@ async function handleStructureVisit(job) {
   // ایشو #28: بعد از ساخت‌دهی موفق، دستیار RAG نکات مرتبط از پایگاه دانش داخلی را
   // پیوست می‌کند (بدون تشخیص/تجویز) تا در صفحهٔ بازبینی به پزشک نمایش داده شود.
   const ragInsights = await getGroundedInsights({ specialty, structuredNote: draft });
-  await pool.query(`UPDATE clinical_notes SET ai_draft = $2, rag_insights = $3 WHERE visit_id = $1`, [
-    visitId,
-    JSON.stringify(draft),
-    JSON.stringify(ragInsights),
-  ]);
-  await writeAuditLog({
-    entityType: 'clinical_note',
-    entityId: visitId,
-    action: 'edited',
-    actorId: null,
-    metadata: { source: 'structuring_pipeline', jobId: job.id },
-  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(
+      `SELECT id FROM visits WHERE id = $1 AND status = 'draft' FOR UPDATE`,
+      [visitId]
+    );
+    if (!rows.length) {
+      await client.query('ROLLBACK');
+      return;
+    }
+    await client.query(`UPDATE clinical_notes SET ai_draft = $2, rag_insights = $3 WHERE visit_id = $1`, [
+      visitId,
+      JSON.stringify(draft),
+      JSON.stringify(ragInsights),
+    ]);
+    await writeAuditLog(
+      {
+        entityType: 'clinical_note',
+        entityId: visitId,
+        action: 'edited',
+        actorId: null,
+        metadata: { source: 'structuring_pipeline', jobId: job.id },
+      },
+      client
+    );
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 const HANDLERS = {

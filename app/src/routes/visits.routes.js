@@ -102,13 +102,37 @@ visitsRouter.post('/visits/:id/draft', async (req, res) => {
   const { valid, errors } = validateStructuredNote(parsed);
   if (!valid) return res.status(400).json({ error: 'ساختار نامعتبر', details: errors });
 
-  await pool.query(
-    `UPDATE clinical_notes SET ai_draft = $2
-     WHERE visit_id = (SELECT id FROM visits WHERE id = $1 AND clinician_id = $3)`,
-    [req.params.id, JSON.stringify(parsed), req.user.sub]
-  );
-  await pool.query(`UPDATE visits SET status = 'reviewed' WHERE id = $1`, [req.params.id]);
-  await writeAuditLog({ entityType: 'clinical_note', entityId: req.params.id, action: 'edited', actorId: req.user.sub });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(
+      `SELECT id
+       FROM visits
+       WHERE id = $1 AND clinician_id = $2 AND status IN ('draft', 'reviewed')
+       FOR UPDATE`,
+      [req.params.id, req.user.sub]
+    );
+    if (!rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'ویزیت قابل ویرایش یافت نشد' });
+    }
+
+    await client.query(`UPDATE clinical_notes SET ai_draft = $2 WHERE visit_id = $1`, [
+      req.params.id,
+      JSON.stringify(parsed),
+    ]);
+    await client.query(`UPDATE visits SET status = 'reviewed' WHERE id = $1`, [req.params.id]);
+    await writeAuditLog(
+      { entityType: 'clinical_note', entityId: req.params.id, action: 'edited', actorId: req.user.sub },
+      client
+    );
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 
   res.redirect(`/visits/${req.params.id}/review`);
 });
@@ -120,7 +144,7 @@ visitsRouter.post('/visits/:id/approve', async (req, res) => {
   try {
     await client.query('BEGIN');
     const { rows } = await client.query(
-      `SELECT cn.ai_draft FROM clinical_notes cn
+      `SELECT v.status, cn.ai_draft FROM clinical_notes cn
        JOIN visits v ON v.id = cn.visit_id
        WHERE v.id = $1 AND v.clinician_id = $2 FOR UPDATE`,
       [req.params.id, req.user.sub]
@@ -129,7 +153,16 @@ visitsRouter.post('/visits/:id/approve', async (req, res) => {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'ویزیت یافت نشد' });
     }
+    if (!['draft', 'reviewed'].includes(rows[0].status) || !rows[0].ai_draft) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'پیش‌نویس آمادهٔ تأیید نیست' });
+    }
     const approvedContent = rows[0].ai_draft;
+    const { valid, errors } = validateStructuredNote(approvedContent);
+    if (!valid) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'پیش‌نویس ساختار نامعتبر دارد', details: errors });
+    }
     await client.query(
       `UPDATE clinical_notes SET approved_content = $2, approved_at = now(), approved_by = $3
        WHERE visit_id = $1`,
@@ -153,7 +186,7 @@ visitsRouter.post('/visits/:id/approve', async (req, res) => {
 // ایشو #16/#18: ارسال خلاصهٔ بیمار از طریق پیامک — فقط برای ویزیت approved مجاز است.
 visitsRouter.post('/visits/:id/send-sms', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT v.status, cn.approved_content, p.phone
+    `SELECT v.status, cn.approved_content, p.phone, p.consent_recorded_at
      FROM visits v
      JOIN clinical_notes cn ON cn.visit_id = v.id
      JOIN patients p ON p.id = v.patient_id
@@ -164,6 +197,13 @@ visitsRouter.post('/visits/:id/send-sms', async (req, res) => {
   if (!visit) return res.status(404).json({ error: 'ویزیت یافت نشد' });
   if (visit.status !== 'approved') {
     return res.status(409).json({ error: 'فقط ویزیت تأییدشده قابل ارسال به بیمار است' });
+  }
+  if (!visit.consent_recorded_at) {
+    return res.status(409).json({ error: 'رضایت بیمار برای ارسال پیامک ثبت نشده است' });
+  }
+  const { valid, errors } = validateStructuredNote(visit.approved_content);
+  if (!valid) {
+    return res.status(409).json({ error: 'محتوای تأییدشده نامعتبر است', details: errors });
   }
 
   const content = visit.approved_content;

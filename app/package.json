@@ -10,7 +10,7 @@
     "migrate": "node src/db/migrate.js",
     "seed": "node src/db/seed.js",
     "worker": "node src/services/queueWorker.js",
-    "test": "node --test tests/"
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "ajv": "^8.17.1",
