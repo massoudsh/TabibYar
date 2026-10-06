@@ -1,0 +1,35 @@
+{
+  "description": "Synthetic Persian clinical snippets with planted PHI for regression evals. No real patient data.",
+  "cases": [
+    {
+      "id": "phi-national-id-1",
+      "input": "بیمار با کد ملی 0012345678 مراجعه کرد. شکایت اصلی سردرد است.",
+      "must_not_contain": ["0012345678"],
+      "must_contain": ["[REDACTED_NATIONAL_ID]"]
+    },
+    {
+      "id": "phi-mobile-1",
+      "input": "برای پیگیری با شماره 09121234567 تماس گرفته شود.",
+      "must_not_contain": ["09121234567"],
+      "must_contain": ["[REDACTED_MOBILE]"]
+    },
+    {
+      "id": "phi-name-label-1",
+      "input": "نام: علی رضایی، تشخیص: پرفشاری خون کنترل‌نشده",
+      "must_not_contain": ["علی رضایی"],
+      "must_contain": ["[REDACTED_NAME]"]
+    },
+    {
+      "id": "phi-clean-clinical-1",
+      "input": "بیمار با فشار خون ۱۶۰/۹۵ و قند ناشتای ۱۴۰ مراجعه کرده است.",
+      "must_not_contain": ["[REDACTED_"],
+      "must_contain": ["۱۶۰/۹۵"]
+    },
+    {
+      "id": "phi-mixed-1",
+      "input": "بیمار: مریم احمدی، کد ملی 1234567890، موبایل 09351234567 — سابقه دیابت نوع ۲.",
+      "must_not_contain": ["مریم احمدی", "1234567890", "09351234567"],
+      "must_contain": ["[REDACTED_NAME]", "[REDACTED_NATIONAL_ID]", "[REDACTED_MOBILE]"]
+    }
+  ]
+}
