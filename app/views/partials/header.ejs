@@ -3,6 +3,9 @@
   <nav class="app-nav">
     <a href="/visits/new">ویزیت جدید</a>
     <a href="/patients">بیماران</a>
+    <% if (user?.role === 'admin') { %>
+      <a href="/admin/analytics">شاخص‌ها</a>
+    <% } %>
     <form class="logout-form" method="post" action="/logout">
       <button type="submit">خروج</button>
     </form>

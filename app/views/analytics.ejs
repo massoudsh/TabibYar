@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>شاخص‌های پایلوت — طبیب‌یار</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main>
+    <h1>شاخص‌های پایلوت</h1>
+    <p class="subtitle">داده‌های ۳۰ روز گذشته برای ارزیابی استفاده و کیفیت مستندسازی</p>
+
+    <section class="metrics-grid" aria-label="شاخص‌های پایلوت">
+      <article class="metric-card">
+        <span class="metric-label">ویزیت ثبت‌شده</span>
+        <strong class="metric-value"><%= metrics.visits_last_30_days %></strong>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">یادداشت تأییدشده</span>
+        <strong class="metric-value"><%= metrics.approved_notes_last_30_days %></strong>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">تأیید بدون ویرایش</span>
+        <strong class="metric-value"><%= metrics.unchanged_approvals_last_30_days %></strong>
+        <span class="metric-help">پیش‌نویس AI بدون تغییر تأیید شده است.</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">میانگین زمان تأیید</span>
+        <strong class="metric-value"><%= Math.round(metrics.average_approval_minutes) %> دقیقه</strong>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">پیامک ارسال‌شده</span>
+        <strong class="metric-value"><%= metrics.sms_sent_last_30_days %></strong>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">پیگیری تکمیل‌شده</span>
+        <strong class="metric-value"><%= metrics.follow_ups_completed %> از <%= metrics.follow_ups_total %></strong>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -9,6 +9,7 @@ export function authenticate(req, res, next) {
   }
   try {
     req.user = verifyToken(token); // { sub, clinicId, role, specialty }
+    res.locals.user = req.user;
     next();
   } catch {
     if (req.accepts('html')) return res.redirect('/login');
