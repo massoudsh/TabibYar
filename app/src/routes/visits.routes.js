@@ -9,6 +9,7 @@ import { validateStructuredNote } from '../services/structuring.js';
 import { getPreviousApprovedVisit, diffVisits } from '../services/followup.js';
 import { getSMSProvider, buildPatientSummarySMS } from '../services/smsAdapter.js';
 import { answerQuestion } from '../services/rag/ragAgent.js';
+import { getVisitTemplates } from '../services/prompts.js';
 import { AI_DRAFT_DISCLAIMER, DIFFERENTIAL_DIAGNOSIS_DISCLAIMER } from '../lib/disclaimers.js';
 
 export const visitsRouter = Router();
@@ -25,6 +26,35 @@ visitsRouter.get('/follow-ups', async (req, res) => {
     [req.user.sub]
   );
   res.render('follow-ups', { followUps });
+});
+
+visitsRouter.post('/follow-ups/:id/reminders', async (req, res) => {
+  const { message, scheduled_for } = req.body;
+  const scheduledFor = new Date(scheduled_for);
+  if (!message?.trim() || message.trim().length > 480 || Number.isNaN(scheduledFor.valueOf()) || scheduledFor <= new Date()) {
+    return res.status(400).send('متن یادآوری و زمان آیندهٔ معتبر الزامی‌اند');
+  }
+
+  const { rows: followUps } = await pool.query(
+    `SELECT f.id FROM follow_up_items f
+     JOIN visits v ON v.id = f.visit_id
+     JOIN patients p ON p.id = v.patient_id
+     WHERE f.id = $1 AND v.clinician_id = $2 AND p.consent_recorded_at IS NOT NULL`,
+    [req.params.id, req.user.sub]
+  );
+  if (!followUps.length) return res.status(404).send('پیگیریِ دارای رضایت یافت نشد');
+
+  const { rows } = await pool.query(
+    `INSERT INTO sms_reminders (follow_up_id, scheduled_for, message, created_by)
+     VALUES ($1, $2, $3, $4) RETURNING id`,
+    [req.params.id, scheduledFor, message.trim(), req.user.sub]
+  );
+  await enqueue('send_sms_reminder', { reminderId: rows[0].id }, scheduledFor);
+  await writeAuditLog({
+    entityType: 'sms_reminder', entityId: rows[0].id, action: 'created', actorId: req.user.sub,
+    metadata: { followUpId: req.params.id, scheduledFor: scheduledFor.toISOString() },
+  });
+  res.redirect('/follow-ups');
 });
 
 visitsRouter.post('/follow-ups/:id/complete', async (req, res) => {
@@ -53,7 +83,11 @@ visitsRouter.get('/visits/new', async (req, res) => {
     'SELECT id, full_name FROM patients WHERE clinic_id = $1 ORDER BY full_name',
     [req.user.clinicId]
   );
-  res.render('visit-new', { patients, specialty: req.user.specialty });
+  res.render('visit-new', {
+    patients,
+    specialty: req.user.specialty,
+    templates: getVisitTemplates(req.user.specialty),
+  });
 });
 
 // ایشو #1/#6: ثبت ویزیت + قرار دادن درخواست ساخت‌دهی در صف پردازش ناهمزمان.

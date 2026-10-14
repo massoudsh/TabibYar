@@ -28,6 +28,18 @@
             <form method="post" action="/follow-ups/<%= item.id %>/complete">
               <button type="submit">تکمیل شد</button>
             </form>
+            <details class="reminder-form">
+              <summary>زمان‌بندی پیامک</summary>
+              <form method="post" action="/follow-ups/<%= item.id %>/reminders">
+                <label>زمان ارسال
+                  <input type="datetime-local" name="scheduled_for" required />
+                </label>
+                <label>متن یادآوری
+                  <input name="message" maxlength="480" required />
+                </label>
+                <button type="submit">ثبت یادآوری</button>
+              </form>
+            </details>
           <% } else { %>
             <span class="status-badge" data-status="approved">تکمیل‌شده</span>
           <% } %>

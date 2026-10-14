@@ -49,8 +49,45 @@ async function handleStructureVisit(job) {
   }
 }
 
+async function handleSendSmsReminder(job) {
+  const { reminderId } = job.payload;
+  const client = await pool.connect();
+  let reminder;
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(
+      `SELECT r.id, r.message, p.phone
+       FROM sms_reminders r
+       JOIN follow_up_items f ON f.id = r.follow_up_id
+       JOIN visits v ON v.id = f.visit_id
+       JOIN patients p ON p.id = v.patient_id
+       WHERE r.id = $1 AND r.status = 'scheduled' AND p.consent_recorded_at IS NOT NULL
+       FOR UPDATE`,
+      [reminderId]
+    );
+    reminder = rows[0];
+    if (!reminder) {
+      await client.query('COMMIT');
+      return;
+    }
+    await client.query(`UPDATE sms_reminders SET status = 'sending' WHERE id = $1`, [reminder.id]);
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  const { getSMSProvider } = await import('./smsAdapter.js');
+  await getSMSProvider().send(reminder.phone, reminder.message);
+  await pool.query(`UPDATE sms_reminders SET status = 'sent', sent_at = now() WHERE id = $1`, [reminder.id]);
+  await writeAuditLog({ entityType: 'sms_reminder', entityId: reminder.id, action: 'sent_to_patient', actorId: null });
+}
+
 const HANDLERS = {
   structure_visit: handleStructureVisit,
+  send_sms_reminder: handleSendSmsReminder,
 };
 
 async function tick() {

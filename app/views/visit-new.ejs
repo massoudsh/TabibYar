@@ -25,13 +25,33 @@
         </label>
         <a href="/patients/new">+ بیمار جدید</a>
 
+        <% if (templates.length) { %>
+          <label>قالب ثبت ویزیت
+            <select id="visit-template">
+              <option value="">بدون قالب</option>
+              <% templates.forEach(function(template, index) { %>
+                <option value="<%= index %>"><%= template.label %></option>
+              <% }) %>
+            </select>
+          </label>
+        <% } %>
+
         <label>خلاصهٔ ویزیت (متن آزاد — ورودی صوتی در نسخهٔ بعد از طریق آپلود/STT اضافه می‌شود)
-          <textarea name="raw_input" rows="8" required placeholder="مثلاً: بیمار دیابت نوع دو، قند ناشتا ۲۱۰ بود..."></textarea>
+          <textarea id="raw-input" name="raw_input" rows="8" required placeholder="مثلاً: بیمار دیابت نوع دو، قند ناشتا ۲۱۰ بود..."></textarea>
         </label>
 
         <button type="submit">ثبت و ارسال به پایپ‌لاین ساخت‌دهی</button>
       </form>
     <% } %>
   </main>
+  <% if (templates.length) { %>
+    <script>
+      const templates = <%- JSON.stringify(templates) %>;
+      document.getElementById('visit-template').addEventListener('change', (event) => {
+        const template = templates[event.target.value];
+        if (template) document.getElementById('raw-input').value = template.text;
+      });
+    </script>
+  <% } %>
 </body>
 </html>

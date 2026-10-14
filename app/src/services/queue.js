@@ -4,10 +4,10 @@
 // بدون تغییر کد routes.
 import { pool } from '../db/pool.js';
 
-export async function enqueue(type, payload) {
+export async function enqueue(type, payload, availableAt = new Date()) {
   const { rows } = await pool.query(
-    `INSERT INTO jobs (type, payload) VALUES ($1, $2) RETURNING id`,
-    [type, JSON.stringify(payload)]
+    `INSERT INTO jobs (type, payload, available_at) VALUES ($1, $2, $3) RETURNING id`,
+    [type, JSON.stringify(payload), availableAt]
   );
   return rows[0].id;
 }
@@ -26,8 +26,8 @@ export async function claimNextJob() {
   try {
     await client.query('BEGIN');
     const { rows } = await client.query(
-      `SELECT * FROM jobs WHERE status = 'pending'
-       ORDER BY created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED`
+      `SELECT * FROM jobs WHERE status = 'pending' AND available_at <= now()
+       ORDER BY available_at ASC, created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED`
     );
     if (!rows.length) {
       await client.query('COMMIT');

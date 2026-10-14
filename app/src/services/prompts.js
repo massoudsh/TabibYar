@@ -39,6 +39,19 @@ const SPECIALTY_GUIDANCE = {
 - اگر پزشک به عکس‌العمل آلرژیک احتمالی اشاره کرد، در "warnings" بیاور.`,
 };
 
+const VISIT_TEMPLATES = {
+  internal_medicine: [
+    { id: 'chronic-care', label: 'پیگیری بیماری مزمن', text: 'شکایت اصلی:\nوضعیت فعلی بیماری:\nفشار خون:\nقند خون / HbA1c:\nداروها و تغییر دوز:\nیافته‌ها:\nبرنامهٔ پیگیری:' },
+  ],
+  dermatology: [
+    { id: 'skin-lesion', label: 'ارزیابی ضایعهٔ پوستی', text: 'شکایت اصلی:\nمحل ضایعه:\nمدت و روند علائم:\nعلائم همراه:\nسابقهٔ حساسیت دارویی:\nیافته‌ها:\nداروها و نحوهٔ مصرف:\nبرنامهٔ پیگیری:' },
+  ],
+};
+
+export function getVisitTemplates(specialty) {
+  return VISIT_TEMPLATES[specialty] || [];
+}
+
 export function buildSystemPrompt(specialty) {
   const guidance = SPECIALTY_GUIDANCE[specialty];
   if (!guidance) {
