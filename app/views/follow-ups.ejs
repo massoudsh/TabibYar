@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>پیگیری‌ها — طبیب‌یار</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main>
+    <h1>پیگیری‌ها</h1>
+    <p class="subtitle">فهرست اقدامات ثبت‌شده در ویزیت‌های شما</p>
+    <% if (!followUps.length) { %>
+      <p class="list-empty">پیگیری‌ای برای نمایش وجود ندارد.</p>
+    <% } %>
+    <ul class="follow-up-list">
+      <% followUps.forEach(function(item) { %>
+        <li class="follow-up-item <%= item.status === 'done' ? 'is-complete' : '' %>">
+          <div>
+            <strong><%= item.description %></strong>
+            <div class="list-meta">
+              بیمار: <a href="/patients/<%= item.patient_id %>"><%= item.patient_name %></a>
+              <% if (item.due_date) { %> — موعد: <%= new Date(item.due_date).toLocaleDateString('fa-IR') %><% } %>
+            </div>
+          </div>
+          <% if (item.status === 'pending') { %>
+            <form method="post" action="/follow-ups/<%= item.id %>/complete">
+              <button type="submit">تکمیل شد</button>
+            </form>
+          <% } else { %>
+            <span class="status-badge" data-status="approved">تکمیل‌شده</span>
+          <% } %>
+        </li>
+      <% }) %>
+    </ul>
+  </main>
+</body>
+</html>

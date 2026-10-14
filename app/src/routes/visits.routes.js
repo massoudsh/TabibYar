@@ -14,6 +14,39 @@ import { AI_DRAFT_DISCLAIMER, DIFFERENTIAL_DIAGNOSIS_DISCLAIMER } from '../lib/d
 export const visitsRouter = Router();
 visitsRouter.use(authenticate);
 
+visitsRouter.get('/follow-ups', async (req, res) => {
+  const { rows: followUps } = await pool.query(
+    `SELECT f.id, f.description, f.due_date, f.status, p.id AS patient_id, p.full_name AS patient_name
+     FROM follow_up_items f
+     JOIN visits v ON v.id = f.visit_id
+     JOIN patients p ON p.id = v.patient_id
+     WHERE v.clinician_id = $1
+     ORDER BY CASE f.status WHEN 'pending' THEN 0 ELSE 1 END, f.due_date NULLS LAST`,
+    [req.user.sub]
+  );
+  res.render('follow-ups', { followUps });
+});
+
+visitsRouter.post('/follow-ups/:id/complete', async (req, res) => {
+  const { rows } = await pool.query(
+    `UPDATE follow_up_items f SET status = 'done'
+     FROM visits v
+     WHERE f.id = $1 AND f.visit_id = v.id AND v.clinician_id = $2 AND f.status = 'pending'
+     RETURNING f.id, f.visit_id`,
+    [req.params.id, req.user.sub]
+  );
+  if (!rows.length) return res.status(404).send('پیگیریِ باز یافت نشد');
+
+  await writeAuditLog({
+    entityType: 'follow_up_item',
+    entityId: rows[0].id,
+    action: 'edited',
+    actorId: req.user.sub,
+    metadata: { status: 'done', visitId: rows[0].visit_id },
+  });
+  res.redirect('/follow-ups');
+});
+
 // ایشو #7: فرم ورود خلاصهٔ ویزیت (متن آزاد در فاز اول؛ صدا از طریق سرویس STT جدا آپلود می‌شود).
 visitsRouter.get('/visits/new', async (req, res) => {
   const { rows: patients } = await pool.query(
