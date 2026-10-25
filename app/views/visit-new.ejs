@@ -9,8 +9,10 @@
 <body>
   <%- include('partials/header') %>
   <main>
-    <h1>ثبت خلاصهٔ ویزیت</h1>
-    <p class="subtitle">تخصص: <%= specialty %></p>
+    <section class="page-heading">
+      <div><p class="eyebrow">مستندسازی سریع</p><h1>ثبت ویزیت جدید</h1><p class="subtitle">تخصص: <%= specialty %> · پیش‌نویس برای بازبینی شما ساخته می‌شود</p></div>
+      <a href="/patients">جست‌وجوی بیمار</a>
+    </section>
 
     <% if (!patients.length) { %>
       <p class="list-empty">هنوز بیماری ثبت نشده — ابتدا <a href="/patients/new">یک بیمار جدید</a> بسازید.</p>

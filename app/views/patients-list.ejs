@@ -9,8 +9,15 @@
 <body>
   <%- include('partials/header') %>
   <main>
-    <h1>بیماران کلینیک</h1>
-    <p><a href="/patients/new">+ بیمار جدید</a></p>
+    <section class="page-heading">
+      <div><p class="eyebrow">پرونده‌ها</p><h1>بیماران</h1><p class="subtitle">جست‌وجو و دسترسی سریع به تاریخچهٔ درمان</p></div>
+      <a class="button button-primary" href="/patients/new">+ بیمار جدید</a>
+    </section>
+    <form class="search-form" method="get" action="/patients">
+      <input type="search" name="q" value="<%= query || '' %>" placeholder="جست‌وجو با نام یا شماره موبایل" aria-label="جست‌وجوی بیمار" />
+      <button type="submit">جست‌وجو</button>
+    </form>
+    <% if (query) { %><p class="result-count"><%= patients.length %> نتیجه برای «<%= query %>»</p><% } %>
 
     <% if (!patients.length) { %>
       <p class="list-empty">هنوز بیماری ثبت نشده است.</p>

@@ -7,15 +7,20 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
-  <main class="auth-box">
-    <h1>🩺 طبیب‌یار</h1>
-    <p class="subtitle">ورود پزشک</p>
-    <% if (error) { %><p class="error"><%= error %></p><% } %>
-    <form method="post" action="/login">
-      <label>شماره تماس<input type="text" name="phone" required autofocus /></label>
-      <label>رمز عبور<input type="password" name="password" required /></label>
-      <button type="submit">ورود</button>
-    </form>
+  <main class="auth-shell">
+    <section class="auth-box">
+      <div class="brand brand-large"><span class="brand-mark">ط</span><span>طبیب‌یار</span></div>
+      <p class="eyebrow">دستیار مستندسازی بالینی</p>
+      <h1>با تمرکز بیشتر، ویزیت بهتری ثبت کنید</h1>
+      <p class="subtitle">وارد فضای امن کلینیک شوید و از ثبت خلاصه تا پیگیری بیمار را یک‌جا مدیریت کنید.</p>
+      <% if (error) { %><p class="error"><%= error %></p><% } %>
+      <form method="post" action="/login">
+        <label>شماره تماس<input type="text" name="phone" autocomplete="username" required autofocus /></label>
+        <label>رمز عبور<input type="password" name="password" autocomplete="current-password" required /></label>
+        <button class="button button-primary button-wide" type="submit">ورود به فضای کاری</button>
+      </form>
+      <p class="auth-note">اطلاعات بیمار فقط برای تیم درمان مجاز قابل مشاهده است.</p>
+    </section>
   </main>
 </body>
 </html>

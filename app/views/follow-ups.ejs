@@ -9,8 +9,10 @@
 <body>
   <%- include('partials/header') %>
   <main>
-    <h1>پیگیری‌ها</h1>
-    <p class="subtitle">فهرست اقدامات ثبت‌شده در ویزیت‌های شما</p>
+    <section class="page-heading">
+      <div><p class="eyebrow">مراقبت مستمر</p><h1>پیگیری‌ها</h1><p class="subtitle">اقدام‌های بعدی بیماران را فراموش نکنید؛ می‌توانید پیامک یادآوری هم زمان‌بندی کنید.</p></div>
+      <a class="button button-secondary" href="/visits/new">ثبت ویزیت</a>
+    </section>
     <% if (!followUps.length) { %>
       <p class="list-empty">پیگیری‌ای برای نمایش وجود ندارد.</p>
     <% } %>

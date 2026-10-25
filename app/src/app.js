@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { authRouter } from './routes/auth.routes.js';
 import { patientsRouter } from './routes/patients.routes.js';
 import { visitsRouter } from './routes/visits.routes.js';
+import { dashboardRouter } from './routes/dashboard.routes.js';
 import { adminRouter } from './routes/admin.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -51,9 +52,10 @@ export function createApp() {
   // باید قبل از routerهای محافظت‌شده (که middleware احراز هویت را برای کل مسیرهای
   // ورودی به خودشان اجرا می‌کنند) ثبت شود، وگرنه ری‌دایرکت به /login می‌گیرد.
   app.get('/health', (req, res) => res.json({ status: 'ok' }));
-  app.get('/', (req, res) => res.redirect('/login'));
+  app.get('/', (req, res) => res.redirect('/dashboard'));
 
   app.use(authRouter);
+  app.use(dashboardRouter);
   app.use(patientsRouter);
   app.use(visitsRouter);
   app.use(adminRouter);

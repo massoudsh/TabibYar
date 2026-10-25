@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>داشبورد — طبیب‌یار</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="dashboard-page">
+    <section class="welcome-row">
+      <div>
+        <p class="eyebrow">فضای کاری پزشک</p>
+        <h1>صبح بخیر، آمادهٔ ویزیت هستید؟</h1>
+        <p class="subtitle">کارهای مهم امروز را از همین‌جا ادامه دهید.</p>
+      </div>
+      <a class="button button-primary" href="/visits/new">+ ثبت ویزیت جدید</a>
+    </section>
+
+    <section class="summary-grid" aria-label="خلاصهٔ عملکرد">
+      <a class="summary-card summary-card-primary" href="/visits/new">
+        <span class="summary-icon">＋</span>
+        <span class="summary-label">ویزیت امروز</span>
+        <strong><%= summary.today_visits %></strong>
+        <span class="summary-link">ثبت ویزیت</span>
+      </a>
+      <a class="summary-card" href="/visits/new">
+        <span class="summary-icon">◌</span>
+        <span class="summary-label">در انتظار بازبینی</span>
+        <strong><%= summary.pending_reviews %></strong>
+        <span class="summary-link">مشاهدهٔ پیش‌نویس‌ها</span>
+      </a>
+      <a class="summary-card" href="/follow-ups">
+        <span class="summary-icon">✓</span>
+        <span class="summary-label">پیگیری باز</span>
+        <strong><%= summary.open_follow_ups %></strong>
+        <span class="summary-link">مدیریت پیگیری‌ها</span>
+      </a>
+      <a class="summary-card" href="/patients">
+        <span class="summary-icon">♡</span>
+        <span class="summary-label">کل بیماران</span>
+        <strong><%= summary.patients_count %></strong>
+        <span class="summary-link">جست‌وجوی پرونده</span>
+      </a>
+    </section>
+
+    <section class="dashboard-columns">
+      <div class="dashboard-panel">
+        <div class="panel-heading"><div><p class="eyebrow">کارهای بعدی</p><h2>پیگیری‌های باز</h2></div><a href="/follow-ups">همه</a></div>
+        <% if (!followUps.length) { %><p class="empty-state">همهٔ پیگیری‌ها انجام شده‌اند.</p><% } %>
+        <ul class="compact-list">
+          <% followUps.forEach(function(item) { %>
+            <li><a href="/patients/<%= item.patient_id %>"><strong><%= item.description %></strong><span><%= item.patient_name %><% if (item.due_date) { %> · <%= new Date(item.due_date).toLocaleDateString('fa-IR') %><% } %></span></a></li>
+          <% }) %>
+        </ul>
+      </div>
+      <div class="dashboard-panel">
+        <div class="panel-heading"><div><p class="eyebrow">آخرین فعالیت</p><h2>ویزیت‌های اخیر</h2></div><a href="/patients">بیماران</a></div>
+        <ul class="compact-list">
+          <% recentVisits.forEach(function(visit) { %>
+            <li><a href="/visits/<%= visit.id %>/review"><strong><%= visit.patient_name %></strong><span><%= new Date(visit.visit_date).toLocaleDateString('fa-IR') %> · <span class="status-badge" data-status="<%= visit.status %>"><%= visit.status === 'approved' ? 'تأییدشده' : 'نیازمند بازبینی' %></span></span></a></li>
+          <% }) %>
+        </ul>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

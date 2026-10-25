@@ -12,12 +12,15 @@ patientsRouter.use(authenticate);
 
 // ایشو #29 (بازآرایی/UX): فهرست بیماران کلینیک — نقطهٔ ورود ناوبری اصلی به پروندهٔ هر بیمار.
 patientsRouter.get('/patients', async (req, res) => {
+  const query = req.query.q?.trim() || '';
   const { rows: patients } = await pool.query(
     `SELECT id, full_name, phone, consent_recorded_at
-     FROM patients WHERE clinic_id = $1 ORDER BY full_name`,
-    [req.user.clinicId]
+     FROM patients
+     WHERE clinic_id = $1 AND ($2 = '' OR full_name ILIKE $3 OR phone ILIKE $3)
+     ORDER BY full_name`,
+    [req.user.clinicId, query, `%${query}%`]
   );
-  res.render('patients-list', { patients });
+  res.render('patients-list', { patients, query });
 });
 
 patientsRouter.get('/patients/new', (req, res) => {

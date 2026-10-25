@@ -1,14 +1,13 @@
 <header class="app-header">
-  <a class="brand" href="/visits/new">🩺 طبیب‌یار</a>
-  <nav class="app-nav">
-    <a href="/visits/new">ویزیت جدید</a>
-    <a href="/patients">بیماران</a>
-    <a href="/follow-ups">پیگیری‌ها</a>
-    <% if (user?.role === 'admin') { %>
-      <a href="/admin/analytics">شاخص‌ها</a>
-    <% } %>
-    <form class="logout-form" method="post" action="/logout">
-      <button type="submit">خروج</button>
-    </form>
-  </nav>
+  <div class="header-inner">
+    <a class="brand" href="/dashboard"><span class="brand-mark">ط</span><span>طبیب‌یار</span></a>
+    <nav class="app-nav" aria-label="ناوبری اصلی">
+      <a href="/dashboard">داشبورد</a>
+      <a href="/visits/new">ویزیت جدید</a>
+      <a href="/patients">بیماران</a>
+      <a href="/follow-ups">پیگیری‌ها</a>
+      <% if (user?.role === 'admin') { %><a href="/admin/analytics">شاخص‌ها</a><% } %>
+    </nav>
+    <form class="logout-form" method="post" action="/logout"><button type="submit">خروج</button></form>
+  </div>
 </header>

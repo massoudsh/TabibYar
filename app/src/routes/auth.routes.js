@@ -31,7 +31,7 @@ authRouter.post('/login', async (req, res) => {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 12 * 60 * 60 * 1000,
   });
-  res.redirect('/visits/new');
+  res.redirect('/dashboard');
 });
 
 authRouter.post('/logout', (req, res) => {
