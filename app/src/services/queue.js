@@ -4,8 +4,8 @@
 // بدون تغییر کد routes.
 import { pool } from '../db/pool.js';
 
-export async function enqueue(type, payload, availableAt = new Date()) {
-  const { rows } = await pool.query(
+export async function enqueue(type, payload, availableAt = new Date(), database = pool) {
+  const { rows } = await database.query(
     `INSERT INTO jobs (type, payload, available_at) VALUES ($1, $2, $3) RETURNING id`,
     [type, JSON.stringify(payload), availableAt]
   );

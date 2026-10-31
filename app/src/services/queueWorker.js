@@ -64,6 +64,7 @@ async function handleSendSmsReminder(job) {
        JOIN visits v ON v.id = f.visit_id
        JOIN patients p ON p.id = v.patient_id
        WHERE r.id = $1 AND r.status = 'scheduled' AND p.consent_recorded_at IS NOT NULL
+         AND v.status = 'approved' AND f.status = 'pending'
        FOR UPDATE`,
       [reminderId]
     );

@@ -31,29 +31,42 @@ visitsRouter.get('/follow-ups', async (req, res) => {
 visitsRouter.post('/follow-ups/:id/reminders', async (req, res) => {
   const { message, scheduled_for } = req.body;
   const scheduledFor = new Date(scheduled_for);
-  if (!message?.trim() || message.trim().length > 480 || Number.isNaN(scheduledFor.valueOf()) || scheduledFor <= new Date()) {
+  if (typeof message !== 'string' || !message.trim() || message.trim().length > 480 || Number.isNaN(scheduledFor.valueOf()) || scheduledFor <= new Date()) {
     return res.status(400).send('متن یادآوری و زمان آیندهٔ معتبر الزامی‌اند');
   }
 
-  const { rows: followUps } = await pool.query(
-    `SELECT f.id FROM follow_up_items f
-     JOIN visits v ON v.id = f.visit_id
-     JOIN patients p ON p.id = v.patient_id
-     WHERE f.id = $1 AND v.clinician_id = $2 AND p.consent_recorded_at IS NOT NULL`,
-    [req.params.id, req.user.sub]
-  );
-  if (!followUps.length) return res.status(404).send('پیگیریِ دارای رضایت یافت نشد');
-
-  const { rows } = await pool.query(
-    `INSERT INTO sms_reminders (follow_up_id, scheduled_for, message, created_by)
-     VALUES ($1, $2, $3, $4) RETURNING id`,
-    [req.params.id, scheduledFor, message.trim(), req.user.sub]
-  );
-  await enqueue('send_sms_reminder', { reminderId: rows[0].id }, scheduledFor);
-  await writeAuditLog({
-    entityType: 'sms_reminder', entityId: rows[0].id, action: 'created', actorId: req.user.sub,
-    metadata: { followUpId: req.params.id, scheduledFor: scheduledFor.toISOString() },
-  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: followUps } = await client.query(
+      `SELECT f.id FROM follow_up_items f
+       JOIN visits v ON v.id = f.visit_id
+       JOIN patients p ON p.id = v.patient_id
+       WHERE f.id = $1 AND v.clinician_id = $2 AND v.status = 'approved'
+         AND f.status = 'pending' AND p.consent_recorded_at IS NOT NULL FOR UPDATE`,
+      [req.params.id, req.user.sub]
+    );
+    if (!followUps.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).send('پیگیریِ باز و تأییدشدهٔ دارای رضایت یافت نشد');
+    }
+    const { rows } = await client.query(
+      `INSERT INTO sms_reminders (follow_up_id, scheduled_for, message, created_by)
+       VALUES ($1, $2, $3, $4) RETURNING id`,
+      [req.params.id, scheduledFor, message.trim(), req.user.sub]
+    );
+    await enqueue('send_sms_reminder', { reminderId: rows[0].id }, scheduledFor, client);
+    await writeAuditLog({
+      entityType: 'sms_reminder', entityId: rows[0].id, action: 'created', actorId: req.user.sub,
+      metadata: { followUpId: req.params.id, scheduledFor: scheduledFor.toISOString() },
+    }, client);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
   res.redirect('/follow-ups');
 });
 
@@ -93,7 +106,7 @@ visitsRouter.get('/visits/new', async (req, res) => {
 // ایشو #1/#6: ثبت ویزیت + قرار دادن درخواست ساخت‌دهی در صف پردازش ناهمزمان.
 visitsRouter.post('/visits', async (req, res) => {
   const { patient_id, raw_input } = req.body;
-  if (!patient_id || !raw_input?.trim()) {
+  if (typeof patient_id !== 'string' || typeof raw_input !== 'string' || !raw_input.trim()) {
     return res.status(400).json({ error: 'patient_id و raw_input الزامی‌اند' });
   }
 
@@ -103,31 +116,31 @@ visitsRouter.post('/visits', async (req, res) => {
   );
   if (!patientRows.length) return res.status(404).json({ error: 'بیمار یافت نشد' });
 
-  const { rows: visitRows } = await pool.query(
-    `INSERT INTO visits (patient_id, clinician_id, status) VALUES ($1, $2, 'draft') RETURNING id`,
-    [patient_id, req.user.sub]
-  );
-  const visitId = visitRows[0].id;
-
-  await pool.query(
-    `INSERT INTO clinical_notes (visit_id, raw_input) VALUES ($1, $2)`,
-    [visitId, raw_input]
-  );
-
-  await writeAuditLog({
-    entityType: 'visit',
-    entityId: visitId,
-    action: 'created',
-    actorId: req.user.sub,
-  });
-
-  const previous = await getPreviousApprovedVisit(patient_id, visitId);
-  await enqueue('structure_visit', {
-    visitId,
-    specialty: req.user.specialty,
-    rawInput: raw_input,
-    previousVisitSummary: previous?.approved_content?.patient_summary || null,
-  });
+  const client = await pool.connect();
+  let visitId;
+  try {
+    await client.query('BEGIN');
+    const { rows: visitRows } = await client.query(
+      `INSERT INTO visits (patient_id, clinician_id, status) VALUES ($1, $2, 'draft') RETURNING id`,
+      [patient_id, req.user.sub]
+    );
+    visitId = visitRows[0].id;
+    await client.query(`INSERT INTO clinical_notes (visit_id, raw_input) VALUES ($1, $2)`, [visitId, raw_input]);
+    await writeAuditLog({ entityType: 'visit', entityId: visitId, action: 'created', actorId: req.user.sub }, client);
+    const previous = await getPreviousApprovedVisit(patient_id, visitId, client);
+    await enqueue('structure_visit', {
+      visitId,
+      specialty: req.user.specialty,
+      rawInput: raw_input,
+      previousVisitSummary: previous?.approved_content?.patient_summary || null,
+    }, new Date(), client);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 
   res.redirect(`/visits/${visitId}/review`);
 });
@@ -290,6 +303,12 @@ visitsRouter.post('/visits/:id/approve', async (req, res) => {
       [req.params.id, JSON.stringify(approvedContent), req.user.sub]
     );
     await client.query(`UPDATE visits SET status = 'approved' WHERE id = $1`, [req.params.id]);
+    for (const item of approvedContent.follow_up) {
+      await client.query(
+        `INSERT INTO follow_up_items (visit_id, description) VALUES ($1, $2)`,
+        [req.params.id, item.description]
+      );
+    }
     await writeAuditLog(
       { entityType: 'visit', entityId: req.params.id, action: 'approved', actorId: req.user.sub },
       client

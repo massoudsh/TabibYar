@@ -25,8 +25,8 @@ function findRecurringComplaints(currentHistory, previousHistory) {
 /**
  * آخرین ویزیت approved قبل از ویزیت فعلی همان بیمار را برمی‌گرداند (یا null).
  */
-export async function getPreviousApprovedVisit(patientId, currentVisitId) {
-  const { rows } = await pool.query(
+export async function getPreviousApprovedVisit(patientId, currentVisitId, database = pool) {
+  const { rows } = await database.query(
     `SELECT v.id AS visit_id, v.visit_date, cn.approved_content
      FROM visits v
      JOIN clinical_notes cn ON cn.visit_id = v.id
