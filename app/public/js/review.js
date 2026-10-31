@@ -17,22 +17,49 @@
     return form[name].value.split('\n').map((s) => s.trim()).filter(Boolean);
   }
 
-  function parseMedications() {
-    return linesToList('medications').map((line) => {
-      const [name, dosage, instructions] = line.split('|').map((s) => (s || '').trim());
-      const med = { name };
-      if (dosage) med.dosage = dosage;
-      if (instructions) med.instructions = instructions;
-      return med;
+  const editorFields = {
+    medications: [['name', 'نام دارو'], ['dosage', 'دوز'], ['instructions', 'دستور مصرف']],
+    follow_up: [['description', 'شرح پیگیری'], ['due_hint', 'زمان پیشنهادی']],
+  };
+  function markDirty() {
+    dirty = true;
+    status.textContent = 'تغییرات ذخیره نشده';
+  }
+  for (const editor of form.querySelectorAll('[data-editor]')) {
+    const rows = editor.querySelector('[data-rows]');
+    editor.addEventListener('click', event => {
+      if (form.querySelector('fieldset').disabled) return;
+      if (event.target.matches('[data-add]')) {
+        const row = document.createElement('div');
+        row.dataset.row = '';
+        editorFields[editor.dataset.editor].forEach(([name, title], index) => {
+          const label = document.createElement('label');
+          label.textContent = title;
+          const input = document.createElement('textarea');
+          input.dataset.field = name;
+          input.dir = 'auto';
+          input.required = index === 0;
+          label.append(input);
+          row.append(label);
+        });
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.dataset.remove = '';
+        remove.textContent = editor.dataset.editor === 'medications' ? 'حذف دارو' : 'حذف پیگیری';
+        row.append(remove);
+        rows.append(row);
+        row.querySelector('textarea').focus();
+        markDirty();
+      } else if (event.target.matches('[data-remove]')) {
+        event.target.closest('[data-row]').remove();
+        editor.querySelector('[data-add]').focus();
+        markDirty();
+      }
     });
   }
-
-  function parseFollowUp() {
-    return linesToList('follow_up').map((line) => {
-      const [description, due_hint] = line.split('|').map((s) => (s || '').trim());
-      const item = { description };
-      if (due_hint) item.due_hint = due_hint;
-      return item;
+  function collectRows(name) {
+    return Array.from(form.querySelectorAll(`[data-editor="${name}"] [data-row]`), row => {
+      return Object.fromEntries(Array.from(row.querySelectorAll('[data-field]'), input => [input.dataset.field, input.value]));
     });
   }
 
@@ -42,10 +69,10 @@
       findings: form.findings.value,
       differential_diagnosis_draft: linesToList('differential_diagnosis_draft'),
       treatment_plan: form.treatment_plan.value,
-      medications: parseMedications(),
+      medications: collectRows('medications'),
       patient_summary: form.patient_summary.value,
       warnings: linesToList('warnings'),
-      follow_up: parseFollowUp(),
+      follow_up: collectRows('follow_up'),
       missing_or_ambiguous: original.missing_or_ambiguous || [],
       parse_error: original.parse_error || false,
     };
@@ -64,8 +91,14 @@
 
   async function perform(approve = false) {
     if (busy || form.querySelector('fieldset').disabled) return;
+    if (!form.reportValidity()) {
+      status.textContent = 'فیلدهای الزامی را تکمیل کنید.';
+      return;
+    }
     if (approve && !window.confirm('محتوای بازبینی‌شده نهایی شود؟ ارسال پیامک اقدام جداگانه‌ای است.')) return;
     busy = true;
+    const fieldset = form.querySelector('fieldset');
+    fieldset.disabled = true;
     const buttons = [document.getElementById('save-draft'), document.getElementById('approve-btn')];
     buttons.forEach(button => { button.disabled = true; });
     try {
@@ -81,6 +114,7 @@
       status.textContent = error.message;
     } finally {
       busy = false;
+      fieldset.disabled = false;
       buttons.forEach(button => { button.disabled = false; });
     }
   }

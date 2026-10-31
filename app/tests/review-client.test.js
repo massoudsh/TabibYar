@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import fs from 'node:fs';
 
 const source = fs.readFileSync(new URL('../public/js/review.js', import.meta.url), 'utf8');
-function setup({ saveOk = true, confirm = true } = {}) {
+function setup({ saveOk = true, confirm = true, valid = true, medications = [], follow_up = [] } = {}) {
   const calls = [];
   const handlers = {};
   const status = {};
@@ -12,6 +12,12 @@ function setup({ saveOk = true, confirm = true } = {}) {
   const form = {
     dataset: { visitId: 'synthetic', original: JSON.stringify(original) },
     querySelector: () => ({ disabled: false }), addEventListener() {},
+    reportValidity: () => valid,
+    querySelectorAll: selector => {
+      if (selector === '[data-editor]') return [];
+      const items = selector.includes('medications') ? medications : follow_up;
+      return items.map(item => ({ querySelectorAll: () => Object.entries(item).map(([field, value]) => ({ dataset: { field }, value })) }));
+    },
   };
   for (const name of ['history', 'findings', 'differential_diagnosis_draft', 'treatment_plan', 'medications', 'patient_summary', 'warnings', 'follow_up']) form[name] = { value: '' };
   const elements = { 'draft-form': form, 'save-status': status };
@@ -27,6 +33,22 @@ function setup({ saveOk = true, confirm = true } = {}) {
   });
   return { calls, handlers, status, get reloads() { return reloads; } };
 }
+
+test('structured fields preserve delimiters, newlines, digits and empty optional values', async () => {
+  const medications = [{ name: 'دارو | A', dosage: '۲.۵ mg', instructions: 'صبح، شب\nبا غذا | آب' }];
+  const follow_up = [{ description: 'آزمایش | بررسی\nمجدد', due_hint: '' }];
+  const app = setup({ medications, follow_up });
+  await app.handlers['save-draft']();
+  const saved = JSON.parse(JSON.parse(app.calls[0].options.body).edited);
+  assert.deepEqual(saved.medications, medications);
+  assert.deepEqual(saved.follow_up, follow_up);
+});
+test('invalid required fields prevent save and approval', async () => {
+  const app = setup({ valid: false });
+  await app.handlers['approve-btn']();
+  assert.equal(app.calls.length, 0);
+  assert.match(app.status.textContent, /الزامی/);
+});
 
 test('failed save prevents approval and reload', async () => {
   const app = setup({ saveOk: false });

@@ -5,6 +5,7 @@ import ejs from 'ejs';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../src/app.js';
 import { pool } from '../src/db/pool.js';
+import { issueToken } from '../src/lib/auth.js';
 import { toJalaliString } from '../src/lib/locale.js';
 
 const views = fileURLToPath(new URL('../views/', import.meta.url));
@@ -43,6 +44,33 @@ test('HTTP security, rendering, health and async error boundaries', async () => 
     assert.equal((await fetch(`${url}/health/live`)).status, 200);
   } finally {
     pool.query = query;
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+  }
+});
+
+test('draft status is clinician-scoped and exposes no clinical content', async () => {
+  const secret = process.env.JWT_SECRET;
+  process.env.JWT_SECRET = 'synthetic-test-secret-not-for-production';
+  const token = issueToken({ id: 'doctor', clinic_id: 'clinic', role: 'physician', specialty: 'internal_medicine' });
+  const server = createApp().listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const query = pool.query;
+  try {
+    const url = `http://127.0.0.1:${server.address().port}/visits/synthetic/status`;
+    pool.query = async (sql, args) => {
+      assert.match(sql, /v.clinician_id = \$2/);
+      assert.deepEqual(args, ['synthetic', 'doctor']);
+      return { rows: [{ ready: false, job_status: 'failed', raw_input: 'private' }] };
+    };
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
+    assert.deepEqual(await response.json(), { status: 'failed' });
+    pool.query = async () => ({ rows: [] });
+    assert.equal((await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } })).status, 404);
+    assert.equal((await fetch(url, { headers: { Accept: 'application/json' } })).status, 401);
+  } finally {
+    pool.query = query;
+    if (secret === undefined) delete process.env.JWT_SECRET; else process.env.JWT_SECRET = secret;
     server.closeAllConnections();
     await new Promise(resolve => server.close(resolve));
   }

@@ -1,5 +1,7 @@
 // ایشو #6: worker پردازش صف — با `npm run worker` جدا از پروسهٔ وب اجرا می‌شود
 // تا ساعات شلوغ مطب باعث انسداد درخواست‌های HTTP نشود.
+import 'dotenv/config';
+import { validateConfig } from '../lib/config.js';
 import { claimNextJob, markJobDone, markJobFailed } from './queue.js';
 import { structureVisit } from './structuring.js';
 import { getGroundedInsights } from './rag/ragAgent.js';
@@ -98,23 +100,50 @@ async function tick() {
     if (!handler) throw new Error(`نوع job ناشناخته: ${job.type}`);
     await handler(job);
     await markJobDone(job.id);
-    console.log(`[worker] ✓ job ${job.id} (${job.type})`);
-  } catch (err) {
-    console.error(`[worker] ✗ job ${job.id}:`, err.message);
-    await markJobFailed(job.id, err.message);
+    console.log(JSON.stringify({ event: 'job_done', jobId: job.id, type: job.type }));
+  } catch {
+    console.error(JSON.stringify({ event: 'job_failed', jobId: job.id, type: job.type }));
+    await markJobFailed(job.id);
   }
   return true;
 }
 
-async function loop() {
-  console.log('[worker] شروع به گوش‌دادن به صف jobs...');
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const handled = await tick();
-    if (!handled) await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+export async function runWorker({ signal, pollInterval = POLL_INTERVAL_MS, processNext = tick } = {}) {
+  while (!signal?.aborted) {
+    let handled = false;
+    try {
+      handled = await processNext();
+    } catch {
+      console.error(JSON.stringify({ event: 'queue_unavailable' }));
+    }
+    if (!handled && !signal?.aborted) {
+      await new Promise(resolve => {
+        const done = () => {
+          clearTimeout(timer);
+          signal?.removeEventListener('abort', done);
+          resolve();
+        };
+        const timer = setTimeout(done, pollInterval);
+        signal?.addEventListener('abort', done, { once: true });
+      });
+    }
   }
 }
 
 if (process.env.NODE_ENV !== 'test') {
-  loop();
+  validateConfig();
+  const controller = new AbortController();
+  let deadline;
+  const stop = () => {
+    if (controller.signal.aborted) return;
+    controller.abort();
+    deadline = setTimeout(() => process.exit(1), 30000);
+    deadline.unref();
+  };
+  process.once('SIGTERM', stop);
+  process.once('SIGINT', stop);
+  runWorker({ signal: controller.signal }).finally(async () => {
+    await pool.end();
+    clearTimeout(deadline);
+  });
 }

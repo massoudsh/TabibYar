@@ -38,7 +38,10 @@
     <% } %>
 
     <% if (!visit.ai_draft) { %>
-      <p>پیش‌نویس هنوز در حال پردازش است. صفحه را رفرش کنید.</p>
+      <section id="draft-progress" data-visit-id="<%= visit.id %>">
+        <p role="status" aria-live="polite">پیش‌نویس در حال پردازش است؛ پس از آماده‌شدن خودکار نمایش داده می‌شود.</p>
+        <button type="button" id="retry-draft" hidden>تلاش دوباره</button>
+      </section>
     <% } else { %>
       <% const d = visit.status === 'approved' ? visit.approved_content : visit.ai_draft; %>
       <% if (d.missing_or_ambiguous && d.missing_or_ambiguous.length) { %>
@@ -76,18 +79,39 @@
         <label>برنامهٔ درمان (treatment_plan)
           <textarea name="treatment_plan" rows="2"><%= d.treatment_plan %></textarea>
         </label>
-        <label>داروها — یک مورد در هر خط، به‌صورت «نام | دوز | دستور مصرف»
-          <textarea name="medications" rows="3"><%= (d.medications||[]).map(m => [m.name, m.dosage||'', m.instructions||''].join(' | ')).join('\n') %></textarea>
-        </label>
+        <section data-editor="medications" aria-label="داروها">
+          <h2>داروها</h2>
+          <div data-rows>
+            <% (d.medications || []).forEach(function(item) { %>
+              <div data-row>
+                <label>نام دارو<textarea data-field="name" required dir="auto"><%= item.name %></textarea></label>
+                <label>دوز<textarea data-field="dosage" dir="auto"><%= item.dosage || '' %></textarea></label>
+                <label>دستور مصرف<textarea data-field="instructions" dir="auto"><%= item.instructions || '' %></textarea></label>
+                <button type="button" data-remove>حذف دارو</button>
+              </div>
+            <% }) %>
+          </div>
+          <button type="button" data-add>افزودن دارو</button>
+        </section>
         <label>خلاصه برای بیمار (patient_summary)
           <textarea name="patient_summary" rows="3"><%= d.patient_summary %></textarea>
         </label>
         <label>هشدارها — یک مورد در هر خط
           <textarea name="warnings" rows="2"><%= (d.warnings||[]).join('\n') %></textarea>
         </label>
-        <label>پیگیری‌ها — یک مورد در هر خط
-          <textarea name="follow_up" rows="2"><%= (d.follow_up||[]).map(f => f.description + (f.due_hint ? ' | ' + f.due_hint : '')).join('\n') %></textarea>
-        </label>
+        <section data-editor="follow_up" aria-label="پیگیری‌ها">
+          <h2>پیگیری‌ها</h2>
+          <div data-rows>
+            <% (d.follow_up || []).forEach(function(item) { %>
+              <div data-row>
+                <label>شرح پیگیری<textarea data-field="description" required dir="auto"><%= item.description %></textarea></label>
+                <label>زمان پیشنهادی<textarea data-field="due_hint" dir="auto"><%= item.due_hint || '' %></textarea></label>
+                <button type="button" data-remove>حذف پیگیری</button>
+              </div>
+            <% }) %>
+          </div>
+          <button type="button" data-add>افزودن پیگیری</button>
+        </section>
 
         <button type="button" id="save-draft" class="btn-secondary">ذخیرهٔ ویرایش</button>
         <button type="button" id="approve-btn">تأیید نهایی پزشک</button>
@@ -114,6 +138,7 @@
     <% } %>
   </main>
   <script src="/js/review.js"></script>
+  <script src="/js/draft-progress.js"></script>
   <script src="/js/rag-assistant.js"></script>
 </body>
 </html>

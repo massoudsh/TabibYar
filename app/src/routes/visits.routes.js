@@ -132,6 +132,59 @@ visitsRouter.post('/visits', async (req, res) => {
   res.redirect(`/visits/${visitId}/review`);
 });
 
+visitsRouter.get('/visits/:id/status', async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT v.status, cn.ai_draft IS NOT NULL AS ready, j.status AS job_status
+     FROM visits v JOIN clinical_notes cn ON cn.visit_id = v.id
+     LEFT JOIN LATERAL (
+       SELECT status FROM jobs WHERE type = 'structure_visit' AND payload->>'visitId' = v.id::text
+       ORDER BY created_at DESC LIMIT 1
+     ) j ON true
+     WHERE v.id = $1 AND v.clinician_id = $2`,
+    [req.params.id, req.user.sub]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'ویزیت یافت نشد' });
+  const visit = rows[0];
+  res.json({ status: visit.ready ? 'ready' : visit.job_status === 'failed' ? 'failed' : 'processing' });
+});
+
+visitsRouter.post('/visits/:id/retry', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(
+      `SELECT v.id FROM visits v JOIN clinical_notes cn ON cn.visit_id = v.id
+       WHERE v.id = $1 AND v.clinician_id = $2 AND v.status = 'draft' AND cn.ai_draft IS NULL FOR UPDATE`,
+      [req.params.id, req.user.sub]
+    );
+    if (!rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'ویزیت قابل پردازش یافت نشد' });
+    }
+    const result = await client.query(
+      `UPDATE jobs SET status = 'pending', attempts = 0, last_error = NULL,
+         available_at = now(), updated_at = now()
+       WHERE id = (SELECT id FROM jobs WHERE type = 'structure_visit' AND payload->>'visitId' = $1
+         ORDER BY created_at DESC LIMIT 1)
+       AND status = 'failed' AND updated_at < now() - interval '60 seconds' RETURNING id`,
+      [req.params.id]
+    );
+    if (!result.rows.length) {
+      await client.query('ROLLBACK');
+      res.set('Retry-After', '60');
+      return res.status(409).json({ error: 'پردازش فعال است یا باید یک دقیقه صبر کنید.' });
+    }
+    await writeAuditLog({ entityType: 'visit', entityId: req.params.id, action: 'edited', actorId: req.user.sub, metadata: { source: 'processing_retry' } }, client);
+    await client.query('COMMIT');
+    res.json({ status: 'processing' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+});
+
 // ایشو #8: صفحهٔ بازبینی پیش‌نویس با ویرایش inline قبل از تأیید.
 // ایشو #11: خلاصهٔ تغییرات از ویزیت قبلی در همین صفحه نمایش داده می‌شود.
 visitsRouter.get('/visits/:id/review', async (req, res) => {

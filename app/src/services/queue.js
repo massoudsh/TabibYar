@@ -52,9 +52,12 @@ export async function markJobDone(id) {
   await pool.query(`UPDATE jobs SET status = 'done', updated_at = now() WHERE id = $1`, [id]);
 }
 
-export async function markJobFailed(id, errorMessage) {
+export async function markJobFailed(id) {
   await pool.query(
-    `UPDATE jobs SET status = 'failed', last_error = $2, updated_at = now() WHERE id = $1`,
-    [id, String(errorMessage).slice(0, 2000)]
+    `UPDATE jobs SET
+       status = CASE WHEN type = 'structure_visit' AND attempts < 3 THEN 'pending' ELSE 'failed' END,
+       available_at = now() + interval '10 seconds' * power(2, LEAST(attempts, 6)),
+       last_error = 'processing_failed', updated_at = now() WHERE id = $1`,
+    [id]
   );
 }
