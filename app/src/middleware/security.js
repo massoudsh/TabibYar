@@ -50,10 +50,38 @@ export function csrfProtection(req, res, next) {
     /^[A-Za-z0-9_-]{32}$/.test(requestToken) &&
     crypto.timingSafeEqual(Buffer.from(cookieToken), Buffer.from(requestToken));
   if (!valid) {
+    console.warn(JSON.stringify({ event: 'csrf_rejected', requestId: req.requestId }));
     if (req.accepts('html')) return res.status(403).send('درخواست نامعتبر است. صفحه را دوباره بارگذاری کنید.');
     return res.status(403).json({ error: 'توکن امنیتی نامعتبر است' });
   }
   next();
+}
+
+export function loginRateLimit({ limit = 20, windowMs = 15 * 60 * 1000, maxEntries = 10000, now = Date.now } = {}) {
+  const attempts = new Map();
+  return (req, res, next) => {
+    const time = now();
+    const key = req.ip;
+    let entry = attempts.get(key);
+    if (!entry || entry.resetAt <= time) {
+      if (attempts.size >= maxEntries) {
+        for (const [ip, value] of attempts) if (value.resetAt <= time) attempts.delete(ip);
+      }
+      if (attempts.size >= maxEntries && !attempts.has(key)) {
+        res.set('Retry-After', String(Math.ceil(windowMs / 1000)));
+        return res.status(429).send('تعداد درخواست‌ها زیاد است؛ بعداً تلاش کنید.');
+      }
+      entry = { count: 0, resetAt: time + windowMs };
+      attempts.set(key, entry);
+    }
+    entry.count++;
+    if (entry.count > limit) {
+      console.warn(JSON.stringify({ event: 'login_rate_limited', requestId: req.requestId }));
+      res.set('Retry-After', String(Math.ceil((entry.resetAt - time) / 1000)));
+      return res.status(429).send('تعداد تلاش‌های ورود زیاد است؛ کمی بعد تلاش کنید.');
+    }
+    next();
+  };
 }
 
 /** رقم‌های ورودی‌های شناسه‌ای را پیش از اعتبارسنجی و ذخیره یکسان می‌کند. */
