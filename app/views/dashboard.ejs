@@ -9,7 +9,7 @@
 </head>
 <body>
   <%- include('partials/header', { section: 'dashboard' }) %>
-  <main class="dashboard-page">
+  <main id="main-content" class="dashboard-page">
     <section class="welcome-row">
       <div>
         <p class="eyebrow">فضای کاری پزشک</p>
@@ -20,25 +20,25 @@
     </section>
 
     <section class="summary-grid" aria-label="خلاصهٔ عملکرد">
-      <a class="summary-card summary-card-primary" href="/visits/new">
+      <a class="glass glass-interactive summary-card summary-card-primary" href="/visits/new">
         <span class="summary-icon">＋</span>
         <span class="summary-label">ویزیت امروز</span>
         <strong><%= summary.today_visits %></strong>
         <span class="summary-link">ثبت ویزیت</span>
       </a>
-      <a class="summary-card" href="/visits/new">
+      <a class="glass glass-interactive summary-card" href="/visits/new">
         <span class="summary-icon">◌</span>
         <span class="summary-label">در انتظار بازبینی</span>
         <strong><%= summary.pending_reviews %></strong>
         <span class="summary-link">مشاهدهٔ پیش‌نویس‌ها</span>
       </a>
-      <a class="summary-card" href="/follow-ups">
+      <a class="glass glass-interactive summary-card" href="/follow-ups">
         <span class="summary-icon">✓</span>
         <span class="summary-label">پیگیری باز</span>
         <strong><%= summary.open_follow_ups %></strong>
         <span class="summary-link">مدیریت پیگیری‌ها</span>
       </a>
-      <a class="summary-card" href="/patients">
+      <a class="glass glass-interactive summary-card" href="/patients">
         <span class="summary-icon">♡</span>
         <span class="summary-label">کل بیماران</span>
         <strong><%= summary.patients_count %></strong>
@@ -47,16 +47,16 @@
     </section>
 
     <section class="dashboard-columns">
-      <div class="dashboard-panel">
+      <div class="glass dashboard-panel">
         <div class="panel-heading"><div><p class="eyebrow">کارهای بعدی</p><h2>پیگیری‌های باز</h2></div><a href="/follow-ups">همه</a></div>
-        <% if (!followUps.length) { %><p class="empty-state">همهٔ پیگیری‌ها انجام شده‌اند.</p><% } %>
+        <% if (!followUps.length) { %><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.6 2.6L16 9.5"/></svg><p>همهٔ پیگیری‌ها انجام شده‌اند.</p></div><% } %>
         <ul class="compact-list">
           <% followUps.forEach(function(item) { %>
             <li><a href="/patients/<%= item.patient_id %>"><strong><%= item.description %></strong><span><%= item.patient_name %><% if (item.due_date) { %> · <%= new Date(item.due_date).toLocaleDateString('fa-IR') %><% } %></span></a></li>
           <% }) %>
         </ul>
       </div>
-      <div class="dashboard-panel">
+      <div class="glass dashboard-panel">
         <div class="panel-heading"><div><p class="eyebrow">آخرین فعالیت</p><h2>ویزیت‌های اخیر</h2></div><a href="/patients">بیماران</a></div>
         <ul class="compact-list">
           <% recentVisits.forEach(function(visit) { %>

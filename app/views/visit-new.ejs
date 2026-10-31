@@ -19,6 +19,7 @@
       <p class="list-empty">هنوز بیماری ثبت نشده — ابتدا <a href="/patients/new">یک بیمار جدید</a> بسازید.</p>
     <% } else { %>
       <form method="post" action="/visits">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
         <label>بیمار
           <select name="patient_id" required>
             <% patients.forEach(function(p) { %>

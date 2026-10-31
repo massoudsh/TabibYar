@@ -14,7 +14,8 @@
       <a href="/follow-ups" <%= current === 'follow-ups' ? 'aria-current="page"' : '' %>>پیگیری‌ها</a>
       <% if (user?.role === 'admin') { %><a href="/admin/analytics" <%= current === 'analytics' ? 'aria-current="page"' : '' %>>شاخص‌ها</a><% } %>
     </nav>
-    <form class="logout-form" method="post" action="/logout"><button type="submit" class="btn-secondary">خروج</button></form>
+    <form class="logout-form" method="post" action="/logout">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button type="submit" class="btn-secondary">خروج</button></form>
   </div>
 </header>
 <nav class="tabbar" aria-label="ناوبری موبایل">
@@ -40,6 +41,7 @@
       شاخص‌ها
     </a>
   <% } else { %>
-    <form class="logout-form tabbar-logout" method="post" action="/logout"><button type="submit">خروج</button></form>
+    <form class="logout-form tabbar-logout" method="post" action="/logout">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button type="submit">خروج</button></form>
   <% } %>
 </nav>

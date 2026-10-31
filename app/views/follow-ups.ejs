@@ -19,21 +19,23 @@
     <% } %>
     <ul class="follow-up-list">
       <% followUps.forEach(function(item) { %>
-        <li class="follow-up-item <%= item.status === 'done' ? 'is-complete' : '' %>">
+        <li class="glass glass-interactive follow-up-item <%= item.status === 'done' ? 'is-complete' : '' %>">
           <div>
             <strong><%= item.description %></strong>
             <div class="list-meta">
               بیمار: <a href="/patients/<%= item.patient_id %>"><%= item.patient_name %></a>
-              <% if (item.due_date) { %> — موعد: <%= new Date(item.due_date).toLocaleDateString('fa-IR') %><% } %>
+              <% if (item.due_date) { %> — موعد: <%= toJalaliString(item.due_date) %><% } %>
             </div>
           </div>
           <% if (item.status === 'pending') { %>
             <form method="post" action="/follow-ups/<%= item.id %>/complete">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
               <button type="submit">تکمیل شد</button>
             </form>
             <details class="reminder-form">
               <summary>زمان‌بندی پیامک</summary>
               <form method="post" action="/follow-ups/<%= item.id %>/reminders">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                 <label>زمان ارسال
                   <input type="datetime-local" name="scheduled_for" required />
                 </label>

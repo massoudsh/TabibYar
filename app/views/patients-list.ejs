@@ -21,7 +21,7 @@
     <% if (query) { %><p class="result-count"><%= patients.length %> نتیجه برای «<%= query %>»</p><% } %>
 
     <% if (!patients.length) { %>
-      <p class="list-empty">هنوز بیماری ثبت نشده است.</p>
+      <div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 8h4M19 6v4"/></svg><p>هنوز بیماری ثبت نشده است.</p><a class="button button-primary" href="/patients/new">ثبت اولین بیمار</a></div>
     <% } %>
     <ul class="patients-list">
       <% patients.forEach(function(p) { %>

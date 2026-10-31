@@ -93,6 +93,7 @@
 
       <% if (visit.status === 'approved') { %>
         <form method="post" action="/visits/<%= visit.id %>/send-sms">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
           <button type="submit">ارسال خلاصه به بیمار (پیامک)</button>
         </form>
       <% } %>

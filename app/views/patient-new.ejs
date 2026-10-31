@@ -12,6 +12,7 @@
   <main id="main-content">
     <h1>ثبت بیمار جدید</h1>
     <form method="post" action="/patients">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
       <label>نام کامل<input type="text" name="full_name" required /></label>
       <label>کد ملی (اختیاری، رمزنگاری می‌شود)<input type="text" name="national_id" /></label>
       <label>شماره موبایل<input type="text" name="phone" required /></label>
