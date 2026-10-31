@@ -24,7 +24,17 @@ test('HTTP security, rendering, health and async error boundaries', async () => 
     assert.doesNotMatch(login.headers.get('content-security-policy'), /unsafe-inline/);
     const cookie = login.headers.get('set-cookie').split(';')[0];
     const token = decodeURIComponent(cookie.split('=')[1]);
-    assert.equal((await fetch(`${url}/logout`, { method: 'POST', headers: { Cookie: cookie } })).status, 403);
+    const warn = console.warn;
+    const events = [];
+    let rejected;
+    try {
+      console.warn = event => events.push(JSON.parse(event));
+      rejected = await fetch(`${url}/logout`, { method: 'POST', headers: { Cookie: cookie } });
+    } finally {
+      console.warn = warn;
+    }
+    assert.equal(rejected.status, 403);
+    assert.deepEqual(events, [{ event: 'csrf_rejected', requestId: rejected.headers.get('x-request-id') }]);
     assert.equal((await fetch(`${url}/logout`, { method: 'POST', headers: { Cookie: cookie, 'X-CSRF-Token': 'é'.repeat(32) } })).status, 403);
     const logout = await fetch(`${url}/logout`, { method: 'POST', redirect: 'manual', headers: { Cookie: cookie, 'X-CSRF-Token': token } });
     assert.equal(logout.status, 302);

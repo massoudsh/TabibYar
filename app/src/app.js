@@ -30,7 +30,8 @@ export function createApp() {
   app.set('views', path.join(__dirname, '../views'));
   app.locals.toJalaliString = toJalaliString;
   app.use((req, res, next) => {
-    res.locals.requestId = crypto.randomUUID();
+    req.requestId = crypto.randomUUID();
+    res.locals.requestId = req.requestId;
     res.set('X-Request-ID', res.locals.requestId);
     res.set('X-Content-Type-Options', 'nosniff');
     res.set('X-Frame-Options', 'DENY');
