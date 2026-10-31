@@ -34,7 +34,7 @@
             <select id="visit-template">
               <option value="">بدون قالب</option>
               <% templates.forEach(function(template, index) { %>
-                <option value="<%= index %>"><%= template.label %></option>
+                <option value="<%= index %>" data-text="<%= template.text %>"><%= template.label %></option>
               <% }) %>
             </select>
           </label>
@@ -48,14 +48,6 @@
       </form>
     <% } %>
   </main>
-  <% if (templates.length) { %>
-    <script>
-      const templates = <%- JSON.stringify(templates) %>;
-      document.getElementById('visit-template').addEventListener('change', (event) => {
-        const template = templates[event.target.value];
-        if (template) document.getElementById('raw-input').value = template.text;
-      });
-    </script>
-  <% } %>
+  <script src="/js/visit-new.js" defer></script>
 </body>
 </html>

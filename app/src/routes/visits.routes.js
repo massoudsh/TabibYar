@@ -201,6 +201,7 @@ visitsRouter.post('/visits/:id/draft', async (req, res) => {
     client.release();
   }
 
+  if (req.get('Accept') === 'application/json') return res.json({ status: 'ok' });
   res.redirect(`/visits/${req.params.id}/review`);
 });
 
@@ -247,6 +248,7 @@ visitsRouter.post('/visits/:id/approve', async (req, res) => {
   } finally {
     client.release();
   }
+  if (req.get('Accept') === 'application/json') return res.json({ status: 'ok' });
   res.redirect(`/visits/${req.params.id}/review`);
 });
 
@@ -291,6 +293,7 @@ visitsRouter.post('/visits/:id/send-sms', async (req, res) => {
     actorId: req.user.sub,
   });
 
+  if (req.get('Accept') === 'application/json') return res.json({ status: 'ok' });
   res.redirect(`/visits/${req.params.id}/review`);
 });
 

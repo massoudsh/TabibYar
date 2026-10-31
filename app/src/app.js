@@ -1,71 +1,71 @@
 import express from 'express';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { authRouter } from './routes/auth.routes.js';
 import { patientsRouter } from './routes/patients.routes.js';
 import { visitsRouter } from './routes/visits.routes.js';
 import { dashboardRouter } from './routes/dashboard.routes.js';
 import { adminRouter } from './routes/admin.routes.js';
+import { securityMiddleware, csrfProtection, normalizeIdentityFields } from './middleware/security.js';
+import { toJalaliString } from './lib/locale.js';
+import { asyncHandler } from './lib/asyncHandler.js';
+import { pool } from './db/pool.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// پارسر سبک کوکی به‌جای وابستگی cookie-parser (چون فقط یک فیلد ساده لازم است).
-function simpleCookieParser(req, _res, next) {
-  req.cookies = {};
-  const header = req.headers.cookie;
-  if (header) {
-    for (const pair of header.split(';')) {
-      const idx = pair.indexOf('=');
-      if (idx === -1) continue;
-      const key = pair.slice(0, idx).trim();
-      const value = pair.slice(idx + 1).trim();
-      req.cookies[key] = decodeURIComponent(value);
+const routers = [authRouter, dashboardRouter, patientsRouter, visitsRouter, adminRouter];
+// Express 4 needs promise rejection forwarding on each registered route handler.
+for (const router of routers) {
+  for (const layer of router.stack) {
+    if (layer.route) {
+      for (const handler of layer.route.stack) handler.handle = asyncHandler(handler.handle);
     }
   }
-  next();
 }
 
 export function createApp() {
   const app = express();
-
+  app.disable('x-powered-by');
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, '../views'));
-  app.use(express.urlencoded({ extended: true }));
-  app.use(express.json());
-  app.use(simpleCookieParser);
-  app.use(express.static(path.join(__dirname, '../public')));
-
+  app.locals.toJalaliString = toJalaliString;
   app.use((req, res, next) => {
-    res.cookie = (name, value, opts = {}) => {
-      const parts = [`${name}=${encodeURIComponent(value)}`];
-      if (opts.httpOnly) parts.push('HttpOnly');
-      if (opts.sameSite) parts.push(`SameSite=${opts.sameSite}`);
-      if (opts.secure) parts.push('Secure');
-      if (opts.maxAge) parts.push(`Max-Age=${Math.floor(opts.maxAge / 1000)}`);
-      parts.push('Path=/');
-      res.append('Set-Cookie', parts.join('; '));
-    };
-    res.clearCookie = (name) => res.append('Set-Cookie', `${name}=; Path=/; Max-Age=0`);
+    res.locals.requestId = crypto.randomUUID();
+    res.set('X-Request-ID', res.locals.requestId);
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.set('X-Frame-Options', 'DENY');
+    res.set('Referrer-Policy', 'no-referrer');
+    res.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'; object-src 'none'");
+    if (process.env.NODE_ENV === 'production') res.set('Strict-Transport-Security', 'max-age=31536000');
     next();
   });
-
-  // باید قبل از routerهای محافظت‌شده (که middleware احراز هویت را برای کل مسیرهای
-  // ورودی به خودشان اجرا می‌کنند) ثبت شود، وگرنه ری‌دایرکت به /login می‌گیرد.
-  app.get('/health', (req, res) => res.json({ status: 'ok' }));
-  app.get('/', (req, res) => res.redirect('/dashboard'));
-
-  app.use(authRouter);
-  app.use(dashboardRouter);
-  app.use(patientsRouter);
-  app.use(visitsRouter);
-  app.use(adminRouter);
-
-  // eslint-disable-next-line no-unused-vars
-  app.use((err, req, res, next) => {
-    console.error(err);
-    if (req.accepts('json')) return res.status(500).json({ error: 'خطای داخلی سرور' });
-    res.status(500).send('خطای داخلی سرور');
+  app.use(express.static(path.join(__dirname, '../public')));
+  app.use(express.urlencoded({ extended: false, limit: '100kb' }));
+  app.use(express.json({ limit: '100kb' }));
+  app.use(securityMiddleware());
+  app.use(csrfProtection);
+  app.use(normalizeIdentityFields);
+  app.use((_req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
   });
-
+  app.get(['/health', '/health/live'], (_req, res) => res.json({ status: 'ok' }));
+  app.get('/health/ready', asyncHandler(async (_req, res) => {
+    try {
+      await pool.query('SELECT 1');
+      res.json({ status: 'ok' });
+    } catch {
+      res.status(503).json({ status: 'unavailable' });
+    }
+  }));
+  app.get('/', (_req, res) => res.redirect('/dashboard'));
+  for (const router of routers) app.use(router);
+  app.use((err, req, res, _next) => {
+    const status = [400, 413].includes(err.status) ? err.status : 500;
+    console.error(JSON.stringify({ event: 'request_failed', requestId: res.locals.requestId, status }));
+    if (res.headersSent) return _next(err);
+    if (req.accepts('json')) return res.status(status).json({ error: 'درخواست انجام نشد. دوباره تلاش کنید.' });
+    res.status(status).send('درخواست انجام نشد. دوباره تلاش کنید.');
+  });
   return app;
 }

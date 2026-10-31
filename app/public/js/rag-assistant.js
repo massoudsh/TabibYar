@@ -24,7 +24,7 @@
     try {
       const res = await fetch(`/visits/${visitId}/ask`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content },
         body: JSON.stringify({ question }),
       });
       const data = await res.json();

@@ -24,8 +24,9 @@ function parseCookies(header = '') {
 export function securityMiddleware({ production = process.env.NODE_ENV === 'production' } = {}) {
   return (req, res, next) => {
     req.cookies = parseCookies(req.headers.cookie);
-    res.locals.csrfToken = req.cookies[CSRF_COOKIE] || crypto.randomBytes(24).toString('base64url');
-    if (!req.cookies[CSRF_COOKIE]) {
+    const validCookie = /^[A-Za-z0-9_-]{32}$/.test(req.cookies[CSRF_COOKIE] || '');
+    res.locals.csrfToken = validCookie ? req.cookies[CSRF_COOKIE] : crypto.randomBytes(24).toString('base64url');
+    if (!validCookie) {
       res.cookie(CSRF_COOKIE, res.locals.csrfToken, {
         httpOnly: false,
         sameSite: 'strict',
@@ -45,8 +46,8 @@ export function csrfProtection(req, res, next) {
   const valid =
     typeof cookieToken === 'string' &&
     typeof requestToken === 'string' &&
-    cookieToken.length >= 16 &&
-    cookieToken.length === requestToken.length &&
+    /^[A-Za-z0-9_-]{32}$/.test(cookieToken) &&
+    /^[A-Za-z0-9_-]{32}$/.test(requestToken) &&
     crypto.timingSafeEqual(Buffer.from(cookieToken), Buffer.from(requestToken));
   if (!valid) {
     if (req.accepts('html')) return res.status(403).send('درخواست نامعتبر است. صفحه را دوباره بارگذاری کنید.');

@@ -9,7 +9,7 @@
 </head>
 <body>
   <%- include('partials/header') %>
-  <main>
+  <main id="main-content" class="glass-strong card">
     <h1>بازبینی پیش‌نویس ویزیت</h1>
     <p class="subtitle">
       وضعیت: <span class="status-badge" data-status="<%= visit.status %>"><%= visit.status %></span>
@@ -40,7 +40,7 @@
     <% if (!visit.ai_draft) { %>
       <p>پیش‌نویس هنوز در حال پردازش است. صفحه را رفرش کنید.</p>
     <% } else { %>
-      <% const d = visit.ai_draft; %>
+      <% const d = visit.status === 'approved' ? visit.approved_content : visit.ai_draft; %>
       <% if (d.missing_or_ambiguous && d.missing_or_ambiguous.length) { %>
         <div class="warning-box">
           <strong>موارد مبهم/ناقص (نیازمند تکمیل پزشک):</strong>
@@ -60,7 +60,9 @@
         </section>
       <% } %>
 
-      <form id="draft-form" data-visit-id="<%= visit.id %>">
+      <form id="draft-form" data-visit-id="<%= visit.id %>" data-original="<%= JSON.stringify(d) %>">
+        <fieldset <%= visit.status === 'approved' ? 'disabled' : '' %>>
+        <legend>محتوای ویزیت</legend>
         <label>شرح‌حال (history)
           <textarea name="history" rows="3"><%= d.history %></textarea>
         </label>
@@ -89,6 +91,8 @@
 
         <button type="button" id="save-draft" class="btn-secondary">ذخیرهٔ ویرایش</button>
         <button type="button" id="approve-btn">تأیید نهایی پزشک</button>
+        </fieldset>
+        <p id="save-status" role="status" aria-live="polite"></p>
       </form>
 
       <% if (visit.status === 'approved') { %>

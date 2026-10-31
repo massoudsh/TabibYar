@@ -8,35 +8,35 @@
       <span>طبیب‌یار</span>
     </a>
     <nav class="app-nav" aria-label="ناوبری اصلی">
-      <a href="/dashboard" <%= current === 'dashboard' ? 'aria-current="page"' : '' %>>داشبورد</a>
-      <a href="/visits/new" <%= current === 'visits-new' ? 'aria-current="page"' : '' %>>ویزیت جدید</a>
-      <a href="/patients" <%= current === 'patients' ? 'aria-current="page"' : '' %>>بیماران</a>
-      <a href="/follow-ups" <%= current === 'follow-ups' ? 'aria-current="page"' : '' %>>پیگیری‌ها</a>
-      <% if (user?.role === 'admin') { %><a href="/admin/analytics" <%= current === 'analytics' ? 'aria-current="page"' : '' %>>شاخص‌ها</a><% } %>
+      <a href="/dashboard" <%- current === 'dashboard' ? 'aria-current="page"' : '' %>>داشبورد</a>
+      <a href="/visits/new" <%- current === 'visits-new' ? 'aria-current="page"' : '' %>>ویزیت جدید</a>
+      <a href="/patients" <%- current === 'patients' ? 'aria-current="page"' : '' %>>بیماران</a>
+      <a href="/follow-ups" <%- current === 'follow-ups' ? 'aria-current="page"' : '' %>>پیگیری‌ها</a>
+      <% if (user?.role === 'admin') { %><a href="/admin/analytics" <%- current === 'analytics' ? 'aria-current="page"' : '' %>>شاخص‌ها</a><% } %>
     </nav>
     <form class="logout-form" method="post" action="/logout">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>" /><button type="submit" class="btn-secondary">خروج</button></form>
   </div>
 </header>
 <nav class="tabbar" aria-label="ناوبری موبایل">
-  <a href="/dashboard" <%= current === 'dashboard' ? 'aria-current="page"' : '' %>>
+  <a href="/dashboard" <%- current === 'dashboard' ? 'aria-current="page"' : '' %>>
     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
     داشبورد
   </a>
-  <a href="/patients" <%= current === 'patients' ? 'aria-current="page"' : '' %>>
+  <a href="/patients" <%- current === 'patients' ? 'aria-current="page"' : '' %>>
     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M17 8h4M19 6v4"/></svg>
     بیماران
   </a>
-  <a href="/visits/new" <%= current === 'visits-new' ? 'aria-current="page"' : '' %>>
+  <a href="/visits/new" <%- current === 'visits-new' ? 'aria-current="page"' : '' %>>
     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4" width="17" height="16.5" rx="3"/><path d="M8 2.8v3M16 2.8v3M8 11h8M12 8v6"/></svg>
     ویزیت
   </a>
-  <a href="/follow-ups" <%= current === 'follow-ups' ? 'aria-current="page"' : '' %>>
+  <a href="/follow-ups" <%- current === 'follow-ups' ? 'aria-current="page"' : '' %>>
     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M8 12.3l2.6 2.6L16 9.5"/></svg>
     پیگیری
   </a>
   <% if (user?.role === 'admin') { %>
-    <a href="/admin/analytics" <%= current === 'analytics' ? 'aria-current="page"' : '' %>>
+    <a href="/admin/analytics" <%- current === 'analytics' ? 'aria-current="page"' : '' %>>
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>
       شاخص‌ها
     </a>
