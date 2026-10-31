@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ورود — طبیب‌یار</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <% if (typeof csrfToken !== 'undefined') { %><meta name="csrf-token" content="<%= csrfToken %>" /><% } %>
 </head>
 <body>
+  <div class="ambient" aria-hidden="true"></div>
   <main class="auth-shell">
     <section class="auth-box">
       <div class="brand brand-large"><span class="brand-mark">ط</span><span>طبیب‌یار</span></div>

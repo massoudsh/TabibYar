@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>پروندهٔ <%= patient.full_name %> — طبیب‌یار</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <% if (typeof csrfToken !== 'undefined') { %><meta name="csrf-token" content="<%= csrfToken %>" /><% } %>
 </head>
 <body>
-  <%- include('partials/header') %>
-  <main>
+  <%- include('partials/header', { section: 'patients' }) %>
+  <main id="main-content">
     <h1><%= patient.full_name %></h1>
     <p class="subtitle">
       موبایل: <%= patient.phone %> —

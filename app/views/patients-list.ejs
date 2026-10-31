@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>بیماران — طبیب‌یار</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <% if (typeof csrfToken !== 'undefined') { %><meta name="csrf-token" content="<%= csrfToken %>" /><% } %>
 </head>
 <body>
-  <%- include('partials/header') %>
-  <main>
+  <%- include('partials/header', { section: 'patients' }) %>
+  <main id="main-content">
     <section class="page-heading">
       <div><p class="eyebrow">پرونده‌ها</p><h1>بیماران</h1><p class="subtitle">جست‌وجو و دسترسی سریع به تاریخچهٔ درمان</p></div>
       <a class="button button-primary" href="/patients/new">+ بیمار جدید</a>

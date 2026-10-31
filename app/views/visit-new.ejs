@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ویزیت جدید — طبیب‌یار</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <% if (typeof csrfToken !== 'undefined') { %><meta name="csrf-token" content="<%= csrfToken %>" /><% } %>
 </head>
 <body>
-  <%- include('partials/header') %>
-  <main>
+  <%- include('partials/header', { section: 'visits-new' }) %>
+  <main id="main-content">
     <section class="page-heading">
       <div><p class="eyebrow">مستندسازی سریع</p><h1>ثبت ویزیت جدید</h1><p class="subtitle">تخصص: <%= specialty %> · پیش‌نویس برای بازبینی شما ساخته می‌شود</p></div>
       <a href="/patients">جست‌وجوی بیمار</a>

@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>پیگیری‌ها — طبیب‌یار</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <% if (typeof csrfToken !== 'undefined') { %><meta name="csrf-token" content="<%= csrfToken %>" /><% } %>
 </head>
 <body>
-  <%- include('partials/header') %>
-  <main>
+  <%- include('partials/header', { section: 'follow-ups' }) %>
+  <main id="main-content">
     <section class="page-heading">
       <div><p class="eyebrow">مراقبت مستمر</p><h1>پیگیری‌ها</h1><p class="subtitle">اقدام‌های بعدی بیماران را فراموش نکنید؛ می‌توانید پیامک یادآوری هم زمان‌بندی کنید.</p></div>
       <a class="button button-secondary" href="/visits/new">ثبت ویزیت</a>
