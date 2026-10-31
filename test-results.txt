@@ -1,0 +1,261 @@
+
+> tabibyar-app@0.1.0 test
+> node --test tests/*.test.js
+
+TAP version 13
+# Subtest: startup rejects missing or weak configuration without exposing values
+ok 1 - startup rejects missing or weak configuration without exposing values
+  ---
+  duration_ms: 91.042518
+  ...
+# Subtest: mixed Persian and Arabic numerals normalize without altering text
+ok 2 - mixed Persian and Arabic numerals normalize without altering text
+  ---
+  duration_ms: 0.396947
+  ...
+# Subtest: Jalali formatting handles Nowruz and invalid dates
+ok 3 - Jalali formatting handles Nowruz and invalid dates
+  ---
+  duration_ms: 198.056247
+  ...
+# Subtest: encryptField/decryptField round-trip (ایشو \#14)
+ok 4 - encryptField/decryptField round-trip (ایشو \#14)
+  ---
+  duration_ms: 92.105539
+  ...
+# Subtest: encryptField(null/empty) برمی‌گرداند null
+ok 5 - encryptField(null/empty) برمی‌گرداند null
+  ---
+  duration_ms: 0.346071
+  ...
+# Subtest: decryptField(null) برمی‌گرداند null
+ok 6 - decryptField(null) برمی‌گرداند null
+  ---
+  duration_ms: 0.271123
+  ...
+# Subtest: دو رمزنگاری متن یکسان، ciphertext متفاوت تولید می‌کنند (IV تصادفی)
+ok 7 - دو رمزنگاری متن یکسان، ciphertext متفاوت تولید می‌کنند (IV تصادفی)
+  ---
+  duration_ms: 1.688334
+  ...
+# Subtest: ready reloads once without further polling
+ok 8 - ready reloads once without further polling
+  ---
+  duration_ms: 99.581185
+  ...
+# Subtest: failed job exposes retry and stops polling
+ok 9 - failed job exposes retry and stops polling
+  ---
+  duration_ms: 3.81267
+  ...
+# Subtest: processing schedules bounded polling; lost authorization stops it
+ok 10 - processing schedules bounded polling; lost authorization stops it
+  ---
+  duration_ms: 96.763157
+  ...
+# Subtest: diffVisits: بدون ویزیت قبلی → hasPrevious=false (ایشو \#23)
+ok 11 - diffVisits: بدون ویزیت قبلی → hasPrevious=false (ایشو \#23)
+  ---
+  duration_ms: 2.719427
+  ...
+# Subtest: diffVisits: شکایت تکرارشونده تشخیص داده می‌شود (ایشو \#24)
+ok 12 - diffVisits: شکایت تکرارشونده تشخیص داده می‌شود (ایشو \#24)
+  ---
+  duration_ms: 0.469927
+  ...
+# Subtest: diffVisits: داروی جدید و قطع‌شده تشخیص داده می‌شود
+ok 13 - diffVisits: داروی جدید و قطع‌شده تشخیص داده می‌شود
+  ---
+  duration_ms: 93.379279
+  ...
+# {"event":"login_rate_limited","requestId":"synthetic"}
+# Subtest: login limit separates addresses, supplies retry delay and expires
+ok 14 - login limit separates addresses, supplies retry delay and expires
+  ---
+  duration_ms: 4.376323
+  ...
+# Subtest: limiter bounds memory and reclaims expired entries
+ok 15 - limiter bounds memory and reclaims expired entries
+  ---
+  duration_ms: 0.381819
+  ...
+# Subtest: supportedSpecialties دقیقاً دو تخصص فاز اول را برمی‌گرداند (ایشو \#4)
+ok 16 - supportedSpecialties دقیقاً دو تخصص فاز اول را برمی‌گرداند (ایشو \#4)
+  ---
+  duration_ms: 97.430039
+  ...
+# Subtest: buildSystemPrompt برای تخصص پشتیبانی‌نشده خطا می‌دهد
+ok 17 - buildSystemPrompt برای تخصص پشتیبانی‌نشده خطا می‌دهد
+  ---
+  duration_ms: 0.82175
+  ...
+# Subtest: buildSystemPrompt شامل راهنمای اختصاصی تخصص است
+ok 18 - buildSystemPrompt شامل راهنمای اختصاصی تخصص است
+  ---
+  duration_ms: 1.565939
+  ...
+# {"event":"queue_unavailable"}
+# Subtest: queue retries only structuring with bounded backoff and no provider text
+ok 19 - queue retries only structuring with bounded backoff and no provider text
+  ---
+  duration_ms: 2.564645
+  ...
+# Subtest: worker drains active job before stopping and claims no additional job
+ok 20 - worker drains active job before stopping and claims no additional job
+  ---
+  duration_ms: 0.502638
+  ...
+# Subtest: worker recovers from queue failures rather than terminating
+ok 21 - worker recovers from queue failures rather than terminating
+  ---
+  duration_ms: 6.728418
+  ...
+# Subtest: retrieve نتایج مرتبط با تخصص را با اولویت بالاتر برمی‌گرداند (ایشو \#28)
+ok 22 - retrieve نتایج مرتبط با تخصص را با اولویت بالاتر برمی‌گرداند (ایشو \#28)
+  ---
+  duration_ms: 96.932585
+  ...
+# Subtest: retrieve برای کوئری بی‌ربط چیزی برنمی‌گرداند
+ok 23 - retrieve برای کوئری بی‌ربط چیزی برنمی‌گرداند
+  ---
+  duration_ms: 0.961486
+  ...
+# Subtest: retrieve برای کوئری خالی آرایهٔ خالی می‌دهد
+ok 24 - retrieve برای کوئری خالی آرایهٔ خالی می‌دهد
+  ---
+  duration_ms: 2.332989
+  ...
+# Subtest: getGroundedInsights نکات مبتنی بر پایگاه دانش با ارجاع به منبع برمی‌گرداند
+ok 25 - getGroundedInsights نکات مبتنی بر پایگاه دانش با ارجاع به منبع برمی‌گرداند
+  ---
+  duration_ms: 1.297772
+  ...
+# Subtest: getGroundedInsights برای پیش‌نویس خالی آرایهٔ خالی می‌دهد
+ok 26 - getGroundedInsights برای پیش‌نویس خالی آرایهٔ خالی می‌دهد
+  ---
+  duration_ms: 0.242441
+  ...
+# Subtest: answerQuestion در برابر درخواست تشخیص/تجویز امتناع می‌کند (مرز محصول)
+ok 27 - answerQuestion در برابر درخواست تشخیص/تجویز امتناع می‌کند (مرز محصول)
+  ---
+  duration_ms: 0.28766
+  ...
+# Subtest: answerQuestion برای سؤال مستندسازی پاسخ مبتنی بر منبع می‌دهد
+ok 28 - answerQuestion برای سؤال مستندسازی پاسخ مبتنی بر منبع می‌دهد
+  ---
+  duration_ms: 0.944577
+  ...
+# Subtest: answerQuestion با question خالی خطا می‌دهد
+ok 29 - answerQuestion با question خالی خطا می‌دهد
+  ---
+  duration_ms: 93.085752
+  ...
+# Subtest: structured fields preserve delimiters, newlines, digits and empty optional values
+ok 30 - structured fields preserve delimiters, newlines, digits and empty optional values
+  ---
+  duration_ms: 296.872168
+  ...
+# Subtest: invalid required fields prevent save and approval
+ok 31 - invalid required fields prevent save and approval
+  ---
+  duration_ms: 1.313942
+  ...
+# Subtest: failed save prevents approval and reload
+ok 32 - failed save prevents approval and reload
+  ---
+  duration_ms: 1.232682
+  ...
+# Subtest: cancelled confirmation sends nothing
+ok 33 - cancelled confirmation sends nothing
+  ---
+  duration_ms: 0.904189
+  ...
+# Subtest: confirmed approval saves first, preserves flags and includes CSRF
+ok 34 - confirmed approval saves first, preserves flags and includes CSRF
+  ---
+  duration_ms: 1.406665
+  ...
+# [MOCK-SMS] به 09120000000:
+# تست
+# Subtest: buildPatientSummarySMS شامل خلاصه، پیگیری و هشدار است (ایشو \#18)
+ok 35 - buildPatientSummarySMS شامل خلاصه، پیگیری و هشدار است (ایشو \#18)
+  ---
+  duration_ms: 1.901457
+  ...
+# Subtest: getSMSProvider پیش‌فرض mock برمی‌گرداند (ایشو \#17)
+ok 36 - getSMSProvider پیش‌فرض mock برمی‌گرداند (ایشو \#17)
+  ---
+  duration_ms: 90.419346
+  ...
+# Subtest: getSMSProvider برای provider ناشناخته خطا می‌دهد
+ok 37 - getSMSProvider برای provider ناشناخته خطا می‌دهد
+  ---
+  duration_ms: 0.644446
+  ...
+# Subtest: structureVisit (mock provider) خروجی معتبر مطابق schema برمی‌گرداند (ایشو \#1/\#3)
+ok 38 - structureVisit (mock provider) خروجی معتبر مطابق schema برمی‌گرداند (ایشو \#1/\#3)
+  ---
+  duration_ms: 6.933925
+  ...
+# Subtest: structureVisit با rawInput خالی خطا می‌دهد
+ok 39 - structureVisit با rawInput خالی خطا می‌دهد
+  ---
+  duration_ms: 0.568845
+  ...
+# Subtest: validateStructuredNote یک شیء ناقص را رد می‌کند (ایشو \#3)
+ok 40 - validateStructuredNote یک شیء ناقص را رد می‌کند (ایشو \#3)
+  ---
+  duration_ms: 0.410014
+  ...
+# Subtest: StructuringValidationError کلاس صحیح صادر می‌شود
+ok 41 - StructuringValidationError کلاس صحیح صادر می‌شود
+  ---
+  duration_ms: 0.216564
+  ...
+# Subtest: approval materializes follow-ups inside its transaction without guessing dates
+ok 42 - approval materializes follow-ups inside its transaction without guessing dates
+  ---
+  duration_ms: 4.240033
+  ...
+# Subtest: repeated approval cannot duplicate follow-ups
+ok 43 - repeated approval cannot duplicate follow-ups
+  ---
+  duration_ms: 0.523602
+  ...
+# Subtest: follow-up insert failure rolls back approval
+ok 44 - follow-up insert failure rolls back approval
+  ---
+  duration_ms: 0.742989
+  ...
+# Subtest: reminder queue failure rolls back reminder creation
+ok 45 - reminder queue failure rolls back reminder creation
+  ---
+  duration_ms: 3.402058
+  ...
+# {"event":"csrf_rejected"}
+# {"event":"csrf_rejected"}
+# {"event":"request_failed","requestId":"1b1f33fd-ba6c-4957-92bc-a198ea7fe7fd","status":500}
+# Subtest: HTTP security, rendering, health and async error boundaries
+ok 46 - HTTP security, rendering, health and async error boundaries
+  ---
+  duration_ms: 304.530744
+  ...
+# Subtest: draft status is clinician-scoped and exposes no clinical content
+ok 47 - draft status is clinician-scoped and exposes no clinical content
+  ---
+  duration_ms: 84.781791
+  ...
+# Subtest: all screens render with empty fixtures and shared security locals
+ok 48 - all screens render with empty fixtures and shared security locals
+  ---
+  duration_ms: 21.32818
+  ...
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3811.783887
