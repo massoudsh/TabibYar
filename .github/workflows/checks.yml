@@ -1,0 +1,45 @@
+name: Application checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: synthetic-ci-only
+          POSTGRES_DB: tabibyar_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d tabibyar_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://test:synthetic-ci-only@127.0.0.1:5432/tabibyar_test
+      JWT_SECRET: synthetic-ci-secret-never-use-in-production
+      ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      MODEL_PROVIDER: mock
+      SMS_PROVIDER: mock
+      STT_PROVIDER: mock
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run migrate
+      - run: npm run migrate
+      - run: node --test --experimental-test-coverage tests/*.test.js
+      - run: npm audit --omit=dev --audit-level=high

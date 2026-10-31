@@ -1,0 +1,85 @@
+name: tabibyar
+
+x-app: &app
+  build: ./app
+  environment: &environment
+    NODE_ENV: production
+    PORT: 3000
+    DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL using db as the database host}
+    JWT_SECRET: ${JWT_SECRET:?Set a strong JWT_SECRET}
+    ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set a base64 encoded 32-byte ENCRYPTION_KEY}
+    MODEL_PROVIDER: mock
+    STT_PROVIDER: ${STT_PROVIDER:-mock}
+    STT_API_URL: http://stt:8000/transcribe
+    SMS_PROVIDER: mock
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tabibyar
+      POSTGRES_USER: tabibyar
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U tabibyar -d tabibyar"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    <<: *app
+    command: [node, src/db/migrate.js]
+    healthcheck:
+      disable: true
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    <<: *app
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    stop_grace_period: 35s
+
+  worker:
+    <<: *app
+    command: [node, src/services/queueWorker.js]
+    healthcheck:
+      disable: true
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    stop_grace_period: 35s
+
+  stt:
+    build: ./stt-service
+    profiles: [stt]
+    init: true
+    volumes:
+      - model-cache:/home/stt/.cache/huggingface
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  model-cache:
