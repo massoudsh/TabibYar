@@ -1,7 +1,8 @@
 FROM python:3.11-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libsndfile1 && rm -rf /var/lib/apt/lists/* \
-    && useradd --create-home --uid 10001 stt
+    && useradd --create-home --uid 10001 stt \
+    && mkdir -p /home/stt/.cache/huggingface && chown -R stt:stt /home/stt/.cache
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY --chown=stt:stt server.py ./

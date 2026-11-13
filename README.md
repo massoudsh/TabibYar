@@ -85,7 +85,7 @@ flowchart LR
 
 فایل `compose.yaml` دیتابیس PostgreSQL، migration یک‌باره، وب و worker را جدا اجرا می‌کند. وب فقط روی loopback سرور منتشر می‌شود؛ برای استفادهٔ واقعی reverse proxy با HTTPS الزامی است، چون کوکی‌های production امن هستند. این بسته فعلاً مدل و پیامک mock دارد و آمادهٔ ارسال بالینی واقعی نیست.
 
-1. روی سرور، متغیرهای `POSTGRES_PASSWORD`، `DATABASE_URL` (با میزبان `db`، کاربر و دیتابیس `tabibyar`)، `JWT_SECRET` (حداقل ۳۲ بایت) و `ENCRYPTION_KEY` (۳۲ بایت تصادفی با encoding base64) را در محیط امن تنظیم کنید. مقادیر را در Git یا چت نگذارید؛ نویسه‌های خاص رمز در URL باید percent-encode شوند.
+1. روی سرور، `.env.example` را کنار `compose.yaml` به `.env` کپی و پر کنید: `POSTGRES_PASSWORD`، `DATABASE_URL` (با میزبان `db`، کاربر و دیتابیس `tabibyar`)، `JWT_SECRET` (حداقل ۳۲ بایت) و `ENCRYPTION_KEY` (۳۲ بایت تصادفی با encoding base64). مقادیر را در Git یا چت نگذارید؛ نویسه‌های خاص رمز در URL باید percent-encode شوند.
 2. `docker compose up --build -d` را روی سرور اجرا کنید. وب و worker تنها پس از موفقیت migration شروع می‌شوند؛ migration روی یک اتصال و زیر قفل advisory اجرا می‌شود.
 3. `docker compose ps` و `docker compose logs migrate` را بررسی کنید. healthcheck وب اتصال دیتابیس را نیز بررسی می‌کند. worker healthcheck مستقل ندارد.
 4. برای STT اختیاری، `STT_PROVIDER=http docker compose --profile stt up --build -d`؛ بارگیری اولیهٔ مدل طولانی است. STT پورت عمومی ندارد و cache مدل در volume جدا نگهداری می‌شود.
