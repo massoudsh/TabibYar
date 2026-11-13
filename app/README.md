@@ -14,6 +14,10 @@ npm start               # سرور وب روی PORT (پیش‌فرض 3000)
 npm run worker          # در ترمینال جدا — worker صف پردازش ساخت‌دهی (ایشو #6)
 ```
 
+## اجرا با Docker Compose
+
+از داخل همین پوشه: `docker compose up --build -d`. فایل `docker-compose.yaml` همان stack ریشهٔ مخزن است و `DATABASE_URL`، `JWT_SECRET`، `ENCRYPTION_KEY` و `POSTGRES_PASSWORD` را از `.env` می‌خواند (نمونه در `.env.example` ریشه). چون هر دو فایل نام پروژهٔ یکسانی دارند، فقط یکی از دو مسیر را استفاده کنید تا دو stack جدا روی یک نام ساخته نشود. راهنمای کامل در README ریشه است.
+
 ## تست
 
 ```bash
