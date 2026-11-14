@@ -18,6 +18,7 @@ function fakeDatabase({ existingClinician = [] } = {}) {
       if (/SELECT c\.id AS clinic_id/.test(sql)) return { rows: existingClinician };
       if (/INSERT INTO clinics/.test(sql)) return { rows: [{ id: 'clinic-1' }] };
       if (/INSERT INTO clinicians/.test(sql)) return { rows: [{ id: 'clinician-1' }] };
+      if (/DELETE FROM visits/.test(sql)) return { rows: [] };
       if (/DELETE FROM patients/.test(sql)) return { rows: [] };
       const match = sql.match(/(?:INSERT INTO|DELETE FROM|UPDATE)\s+(\w+)/i);
       if (!match) throw new Error(`unexpected SQL: ${sql}`);
@@ -91,14 +92,28 @@ test('re-running the seed resets the password of the demo account only', async (
   const events = [];
   const result = await runSeed({ pool: demo, password: 'Rotated@1405', log: (line) => events.push(JSON.parse(line)) });
   assert.equal(result.phone, '09120000000');
+  assert.equal(result.clinicId, 'clinic-1');
   assert.ok(demo.statements.some((sql) => sql.startsWith('UPDATE clinicians')));
-  assert.ok(events.some((event) => event.event === 'demo_clinician_credentials_reset'));
+  assert.ok(events.some((event) => event.event === 'demo_clinician_reused'));
   assert.ok(!demo.statements.some((sql) => sql.startsWith('INSERT INTO clinicians')), 'existing clinician must not be duplicated');
+});
 
+test('a phone already used by another clinic gets a separate demo account', async () => {
   const realClinic = fakeDatabase({
     existingClinician: [{ clinic_id: 'clinic-9', clinic_name: 'کلینیک واقعی', clinician_id: 'clinician-9', role: 'admin' }],
   });
-  const realEvents = [];
-  await runSeed({ pool: realClinic, log: (line) => realEvents.push(JSON.parse(line)) });
-  assert.ok(realEvents.some((event) => event.event === 'demo_clinician_password_kept'));
+  const events = [];
+  const result = await runSeed({ pool: realClinic, log: (line) => events.push(JSON.parse(line)) });
+  assert.ok(events.some((event) => event.event === 'demo_clinician_phone_taken'));
+  assert.ok(events.some((event) => event.event === 'demo_clinician_created'));
+  assert.ok(!realClinic.statements.some((sql) => sql.startsWith('UPDATE clinicians')), 'real account password must not change');
+  assert.equal(result.clinicId, 'clinic-1');
+});
+
+test('demo patients are deleted after their visits so the FK constraint holds', async () => {
+  const database = fakeDatabase();
+  await runSeed({ pool: database, log: () => {} });
+  const visitDelete = database.statements.findIndex((sql) => sql.startsWith('DELETE FROM visits'));
+  const patientDelete = database.statements.findIndex((sql) => sql.startsWith('DELETE FROM patients'));
+  assert.ok(visitDelete >= 0 && patientDelete > visitDelete);
 });

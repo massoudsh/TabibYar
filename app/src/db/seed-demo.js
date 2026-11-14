@@ -48,28 +48,36 @@ async function ensureDemoClinician(client, { phone, password, log }) {
   const { rows: existing } = await client.query(
     `SELECT c.id AS clinic_id, c.name AS clinic_name, cl.id AS clinician_id, cl.role
      FROM clinicians cl JOIN clinics c ON c.id = cl.clinic_id
-     WHERE cl.phone = $1 ORDER BY cl.created_at LIMIT 1`,
+     WHERE cl.phone = $1 ORDER BY cl.created_at DESC`,
     [phone]
   );
+
+  // حساب دمو = حسابی با همین شماره که در کلینیک دمو است. رمز فقط برای همین حساب بازنویسی می‌شود.
+  const demoAccount = existing.find((row) => row.clinic_name === DEMO_CLINIC_NAME);
+  if (demoAccount) {
+    await client.query(
+      `UPDATE clinicians SET password_hash = $2, role = 'admin', specialty = $3 WHERE id = $1`,
+      [demoAccount.clinician_id, await hashPassword(password), DEMO_SPECIALTY]
+    );
+    log('demo_clinician_reused', {
+      clinicId: demoAccount.clinic_id,
+      clinicianId: demoAccount.clinician_id,
+      previousRole: demoAccount.role,
+    });
+    return { clinic_id: demoAccount.clinic_id, clinician_id: demoAccount.clinician_id };
+  }
+
+  // شماره در کلینیک دیگری ثبت شده (مثلاً ادمین پایلوت). رمز آن حساب هرگز تغییر نمی‌کند؛
+  // به‌جای آن یک حساب دمو جدا در کلینیک دمو ساخته می‌شود. ورود جدیدترین حساب را برمی‌دارد.
   if (existing.length) {
-    const { clinic_id: clinicId, clinician_id: clinicianId, clinic_name: clinicName, role } = existing[0];
-    log('demo_clinician_reused', { clinicId, clinicianId });
-    // حساب دمو باید همیشه با DEMO_PASSWORD فعلی قابل ورود باشد؛ فقط کلینیک دمو بازنویسی می‌شود
-    // تا رمز یک حساب واقعی که تصادفاً همین شماره را دارد تغییر نکند.
-    if (clinicName === DEMO_CLINIC_NAME) {
-      await client.query(
-        `UPDATE clinicians SET password_hash = $2, role = 'admin', specialty = $3 WHERE id = $1`,
-        [clinicianId, await hashPassword(password), DEMO_SPECIALTY]
-      );
-      log('demo_clinician_credentials_reset', { clinicianId, previousRole: role });
-    } else {
-      log('demo_clinician_password_kept', { clinicId, reason: 'clinic_is_not_demo' });
-    }
-    return { clinic_id: clinicId, clinician_id: clinicianId };
+    log('demo_clinician_phone_taken', {
+      clinicId: existing[0].clinic_id,
+      detail: 'شمارهٔ دمو در کلینیک دیگری ثبت است؛ حساب دمو جداگانه ساخته می‌شود.',
+    });
   }
 
   const { rows: clinicRows } = await client.query(
-    'INSERT INTO clinics (name) VALUES ($1) RETURNING id',
+    `INSERT INTO clinics (name) VALUES ($1) RETURNING id`,
     [DEMO_CLINIC_NAME]
   );
   const clinicId = clinicRows[0].id;
@@ -84,11 +92,23 @@ async function ensureDemoClinician(client, { phone, password, log }) {
 }
 
 async function removePreviousDemoPatients(client, clinicId, log) {
+  // visits.patient_id با ON DELETE RESTRICT تعریف شده، پس ویزیت‌ها باید اول حذف شوند.
+  // حذف ویزیت، به‌واسطهٔ CASCADE، یادداشت بالینی، دارو، پیگیری، هشدار و یادآوری پیامکی
+  // همان ویزیت را هم پاک می‌کند.
+  const { rows: visitRows } = await client.query(
+    `DELETE FROM visits
+     WHERE patient_id IN (
+       SELECT id FROM patients WHERE clinic_id = $1 AND phone LIKE $2
+     ) RETURNING id`,
+    [clinicId, `${DEMO_PHONE_PREFIX}%`]
+  );
   const { rows } = await client.query(
     `DELETE FROM patients WHERE clinic_id = $1 AND phone LIKE $2 RETURNING id`,
     [clinicId, `${DEMO_PHONE_PREFIX}%`]
   );
-  if (rows.length) log('demo_patients_removed', { count: rows.length });
+  if (visitRows.length || rows.length) {
+    log('demo_patients_removed', { patients: rows.length, visits: visitRows.length });
+  }
   return rows.length;
 }
 

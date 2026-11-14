@@ -16,12 +16,20 @@ authRouter.post('/login', loginRateLimit(), async (req, res) => {
     return res.status(400).render('login', { error: 'شماره تماس و رمز عبور الزامی است' });
   }
 
+  // شمارهٔ تلفن در clinicians یکتا نیست (مثلاً حساب دمو و ادمین پایلوت می‌توانند هم‌شماره باشند)،
+  // پس همهٔ حساب‌های این شماره بررسی می‌شوند و حسابی که رمز با آن مطابق است انتخاب می‌شود.
   const { rows } = await pool.query(
-    'SELECT * FROM clinicians WHERE phone = $1',
+    'SELECT * FROM clinicians WHERE phone = $1 ORDER BY created_at DESC',
     [phone]
   );
-  const clinician = rows[0];
-  if (!clinician || !(await verifyPassword(password, clinician.password_hash))) {
+  let clinician = null;
+  for (const candidate of rows) {
+    if (await verifyPassword(password, candidate.password_hash)) {
+      clinician = candidate;
+      break;
+    }
+  }
+  if (!clinician) {
     console.warn(JSON.stringify({ event: 'login_failed', requestId: req.requestId }));
     return res.status(401).render('login', { error: 'شماره تماس یا رمز عبور اشتباه است' });
   }
