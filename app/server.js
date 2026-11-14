@@ -1,10 +1,13 @@
 import 'dotenv/config';
 import { createApp } from './src/app.js';
-import { validateConfig, isDemoMode } from './src/lib/config.js';
+import { validateConfig, isDemoMode, demoModeWarnings } from './src/lib/config.js';
 import { pool } from './src/db/pool.js';
 import { runSeed } from './src/db/seed-demo.js';
 
 validateConfig();
+for (const warning of demoModeWarnings()) {
+  console.warn(JSON.stringify({ event: 'demo_mode_warning', warning }));
+}
 
 // حالت دمو: پیش از پذیرش درخواست، دادهٔ نمایشی ۲۰ بیمار ساخته/بازسازی می‌شود.
 // خطای seed سرور را متوقف نمی‌کند؛ فقط لاگ می‌شود تا صفحهٔ ورود در دسترس بماند.

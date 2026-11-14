@@ -1,7 +1,7 @@
 // ایشو #6: worker پردازش صف — با `npm run worker` جدا از پروسهٔ وب اجرا می‌شود
 // تا ساعات شلوغ مطب باعث انسداد درخواست‌های HTTP نشود.
 import 'dotenv/config';
-import { validateConfig } from '../lib/config.js';
+import { validateConfig, demoModeWarnings } from '../lib/config.js';
 import { claimNextJob, markJobDone, markJobFailed } from './queue.js';
 import { structureVisit } from './structuring.js';
 import { getGroundedInsights } from './rag/ragAgent.js';
@@ -133,6 +133,9 @@ export async function runWorker({ signal, pollInterval = POLL_INTERVAL_MS, proce
 
 if (process.env.NODE_ENV !== 'test') {
   validateConfig();
+  for (const warning of demoModeWarnings()) {
+    console.warn(JSON.stringify({ event: 'demo_mode_warning', warning }));
+  }
   const controller = new AbortController();
   let deadline;
   const stop = () => {

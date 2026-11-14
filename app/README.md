@@ -37,8 +37,9 @@ npm run worker          # در ترمینال جدا — worker صف پرداز�
 
 با `DEMO_MODE=true` سرور وب هنگام بالا آمدن خودش seed دمو را اجرا می‌کند (با قفل مشاوره‌ای، پس چند نمونهٔ هم‌زمان
 داده را تکرار نمی‌کنند)، صفحهٔ ورود شماره/رمز دمو را نشان می‌دهد و همهٔ صفحه‌ها نوار «حالت دمو» دارند.
-در Compose: `DEMO_MODE=true docker compose up -d --build`. اعتبارسنجی startup ترکیب `DEMO_MODE=true` با
-`NODE_ENV=production` را رد می‌کند؛ برای دموی عمومی `NODE_ENV` را در compose به `development` تغییر دهید.
+در Compose: `DEMO_MODE=true docker compose up -d --build`. حالت دمو در `NODE_ENV=production` هم مجاز است
+(برای دموی عمومی)، ولی startup هشدار `demo_mode_warning` را در لاگ وب و worker ثبت می‌کند. برای هر محیط
+غیرنمایشی `DEMO_MODE=false` بگذارید و `DEMO_PASSWORD` را از مقدار پیش‌فرض تغییر دهید.
 
 ## تست
 

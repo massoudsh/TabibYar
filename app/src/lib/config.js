@@ -6,6 +6,23 @@ export function isDemoMode(env = process.env) {
   return env.DEMO_MODE === 'true';
 }
 
+/**
+ * هشدارهای حالت دمو — خطا نیستند، ولی باید در لاگ startup دیده شوند.
+ * DEMO_MODE در production مجاز است (برای دموی عمومی)، اما داده ساختگی است و
+ * رمز پیش‌فرض نباید روی اینترنت باز بماند.
+ */
+export function demoModeWarnings(env = process.env) {
+  if (!isDemoMode(env)) return [];
+  const warnings = [];
+  if (env.NODE_ENV === 'production') {
+    warnings.push('DEMO_MODE در NODE_ENV=production فعال است — داده‌ها ساختگی‌اند و برای بیمار واقعی مناسب نیستند.');
+  }
+  if (!env.DEMO_PASSWORD) {
+    warnings.push('DEMO_PASSWORD تنظیم نشده؛ رمز پیش‌فرض دمو استفاده می‌شود.');
+  }
+  return warnings;
+}
+
 export function validateConfig(env = process.env) {
   const errors = [];
   for (const name of REQUIRED_VARIABLES) {
@@ -16,10 +33,6 @@ export function validateConfig(env = process.env) {
   }
   if (env.ENCRYPTION_KEY && Buffer.from(env.ENCRYPTION_KEY, 'base64').length !== 32) {
     errors.push('ENCRYPTION_KEY باید پس از decode base64 دقیقاً ۳۲ بایت باشد.');
-  }
-  // حالت دمو: دادهٔ ساختگی ۲۰ بیمار در startup ساخته می‌شود — فقط برای نمایش، نه محیط واقعی.
-  if (env.DEMO_MODE === 'true' && env.NODE_ENV === 'production') {
-    errors.push('DEMO_MODE در NODE_ENV=production مجاز نیست.');
   }
   if (errors.length) {
     throw new Error(`پیکربندی نامعتبر است:\n- ${errors.join('\n- ')}`);
