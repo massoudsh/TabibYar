@@ -14,6 +14,7 @@ function fakeDatabase({ existingClinician = [] } = {}) {
       statements.push(sql.trim().split('\n')[0]);
       if (/^(BEGIN|COMMIT|ROLLBACK)$/i.test(sql.trim())) return { rows: [] };
       if (/pg_advisory_(un)?lock/.test(sql)) return { rows: [] };
+      if (/^SET lock_timeout/.test(sql.trim())) return { rows: [] };
       if (/SELECT c\.id AS clinic_id/.test(sql)) return { rows: existingClinician };
       if (/INSERT INTO clinics/.test(sql)) return { rows: [{ id: 'clinic-1' }] };
       if (/INSERT INTO clinicians/.test(sql)) return { rows: [{ id: 'clinician-1' }] };

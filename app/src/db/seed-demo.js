@@ -237,6 +237,8 @@ export async function runSeed({
   const client = await database.connect();
   try {
     // قفل مشاوره‌ای: اگر چند نمونهٔ وب هم‌زمان بالا بیایند، seed فقط یک‌بار اجرا می‌شود.
+    // lock_timeout تضمین می‌کند انتظار برای قفل بی‌نهایت طول نکشد و startup قفل نشود.
+    await client.query("SET lock_timeout = '15s'");
     await client.query('SELECT pg_advisory_lock($1)', [DEMO_SEED_LOCK]);
     await client.query('BEGIN');
     const { clinic_id: clinicId, clinician_id: clinicianId } = await ensureDemoClinician(
