@@ -11,6 +11,8 @@ import { securityMiddleware, csrfProtection, normalizeIdentityFields } from './m
 import { toJalaliString } from './lib/locale.js';
 import { asyncHandler } from './lib/asyncHandler.js';
 import { pool } from './db/pool.js';
+import { isDemoMode } from './lib/config.js';
+import { DEFAULT_DEMO_PHONE, DEFAULT_DEMO_PASSWORD } from './db/seed-demo.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const routers = [authRouter, dashboardRouter, patientsRouter, visitsRouter, adminRouter];
@@ -29,6 +31,11 @@ export function createApp() {
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, '../views'));
   app.locals.toJalaliString = toJalaliString;
+  // حالت دمو: نوار هشدار در همهٔ صفحه‌ها و راهنمای ورود در صفحهٔ لاگین.
+  app.locals.demoMode = isDemoMode();
+  app.locals.demoCredentials = app.locals.demoMode
+    ? { phone: process.env.DEMO_PHONE || DEFAULT_DEMO_PHONE, password: process.env.DEMO_PASSWORD || DEFAULT_DEMO_PASSWORD }
+    : null;
   app.use((req, res, next) => {
     req.requestId = crypto.randomUUID();
     res.locals.requestId = req.requestId;

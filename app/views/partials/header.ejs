@@ -1,5 +1,6 @@
 <% const current = typeof section !== 'undefined' ? section : ''; %>
 <a class="skip-link" href="#main-content">پرش به محتوای اصلی</a>
+<% if (typeof demoMode !== 'undefined' && demoMode) { %><p class="demo-banner" role="status">حالت دمو — داده‌های نمایشی و ساختگی؛ برای استفادهٔ واقعی با بیماران مناسب نیست.</p><% } %>
 <div class="ambient" aria-hidden="true"></div>
 <header class="app-header">
   <div class="header-inner">

@@ -12,6 +12,10 @@ x-app: &app
     STT_PROVIDER: ${STT_PROVIDER:-mock}
     STT_API_URL: http://stt:8000/transcribe
     SMS_PROVIDER: mock
+    # حالت دمو: با DEMO_MODE=true دادهٔ نمایشی ۲۰ بیمار در startup ساخته می‌شود.
+    DEMO_MODE: ${DEMO_MODE:-false}
+    DEMO_PHONE: ${DEMO_PHONE:-09120000000}
+    DEMO_PASSWORD: ${DEMO_PASSWORD:-Demo@TabibYar1405}
   init: true
   read_only: true
   tmpfs:

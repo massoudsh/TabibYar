@@ -123,7 +123,13 @@ test('all screens render with empty fixtures and shared security locals', async 
   assert.match(trend, /--bar-height: 0%/);
   assert.match(trend, /<table class="visually-hidden">/);
   assert.doesNotMatch(trend, /<script>/);
+  const demoHeader = await ejs.renderFile(`${views}partials/header.ejs`, { ...common, section: 'dashboard', demoMode: true });
+  assert.match(demoHeader, /class="demo-banner"/);
+  const demoLogin = await ejs.renderFile(`${views}login.ejs`, { ...common, error: null, demoMode: true, demoCredentials: { phone: '09120000000', password: 'Demo@TabibYar1405' } });
+  assert.match(demoLogin, /09120000000/);
+  assert.doesNotMatch(await ejs.renderFile(`${views}login.ejs`, { ...common, error: null, demoMode: false, demoCredentials: null }), /demo-hint/);
   const header = await ejs.renderFile(`${views}partials/header.ejs`, { ...common, section: 'dashboard' });
   assert.match(header, /aria-current="page"/);
+  assert.doesNotMatch(header, /demo-banner/);
   assert.doesNotMatch(header, /aria-current=&#/);
 });

@@ -534,6 +534,8 @@ textarea { resize: vertical; }
 .auth-box { width: min(100%, 460px); padding: var(--space-6); }
 .brand-large { margin-bottom: var(--space-5); font-size: 1.3rem; }
 .auth-note { margin-top: var(--space-4); color: var(--color-text-muted); font-size: 0.75rem; text-align: center; }
+.demo-hint { margin-top: var(--space-4); padding: var(--space-3); border: 1px dashed var(--warning-border); border-radius: var(--radius); background: var(--warning-bg); color: var(--warning-text); font-size: 0.82rem; text-align: center; }
+.demo-banner { position: sticky; top: 0; z-index: var(--z-sticky); margin: 0; padding: var(--space-2) var(--space-4); background: var(--warning-bg); border-bottom: 1px solid var(--warning-border); color: var(--warning-text); font-size: 0.8rem; font-weight: 600; text-align: center; }
 
 /* ============================================================
    Misc

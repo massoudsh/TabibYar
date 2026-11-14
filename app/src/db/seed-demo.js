@@ -23,9 +23,12 @@ import { validateStructuredNote } from '../services/structuring.js';
 import { getGroundedInsights } from '../services/rag/ragAgent.js';
 import { buildDemoRows } from './demo/build.js';
 
-const DEMO_CLINIC_NAME = 'کلینیک دمو طبیب‌یار';
+export const DEMO_CLINIC_NAME = 'کلینیک دمو طبیب‌یار';
+export const DEFAULT_DEMO_PHONE = '09120000000';
+export const DEFAULT_DEMO_PASSWORD = 'Demo@TabibYar1405';
 const DEMO_SPECIALTY = 'internal_medicine';
 const DEMO_PHONE_PREFIX = '091210000';
+const DEMO_SEED_LOCK = 741929; // با قفل migration (741928) متفاوت است
 
 function createLogger({ runId, startedAt, out = console.log, err = console.error }) {
   return {
@@ -197,8 +200,8 @@ async function insertRows(client, { clinicId, clinicianId, rows, log }) {
 export async function runSeed({
   pool: database = pool,
   now = new Date(),
-  phone = process.env.DEMO_PHONE || '09120000000',
-  password = process.env.DEMO_PASSWORD || 'Demo@TabibYar1405',
+  phone = process.env.DEMO_PHONE || DEFAULT_DEMO_PHONE,
+  password = process.env.DEMO_PASSWORD || DEFAULT_DEMO_PASSWORD,
   log = console.log,
   errorLog = console.error,
 } = {}) {
@@ -221,6 +224,8 @@ export async function runSeed({
 
   const client = await database.connect();
   try {
+    // قفل مشاوره‌ای: اگر چند نمونهٔ وب هم‌زمان بالا بیایند، seed فقط یک‌بار اجرا می‌شود.
+    await client.query('SELECT pg_advisory_lock($1)', [DEMO_SEED_LOCK]);
     await client.query('BEGIN');
     const { clinic_id: clinicId, clinician_id: clinicianId } = await ensureDemoClinician(
       client, { phone, password, log: logger.log }
@@ -234,6 +239,11 @@ export async function runSeed({
     await client.query('ROLLBACK');
     throw error;
   } finally {
+    try {
+      await client.query('SELECT pg_advisory_unlock($1)', [DEMO_SEED_LOCK]);
+    } catch {
+      // اتصال از دست رفته — قفل با بسته‌شدن session آزاد می‌شود.
+    }
     client.release();
   }
 }

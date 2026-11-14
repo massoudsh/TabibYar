@@ -33,6 +33,13 @@ npm run worker          # در ترمینال جدا — worker صف پرداز�
   با `runId` و شمارش هر جدول چاپ می‌شود — قابل جمع‌آوری در همان مسیر لاگ سرویس.
 - در Docker: `docker compose run --rm web node src/db/seed-demo.js` (پس از `migrate`).
 
+### حالت دمو (DEMO_MODE)
+
+با `DEMO_MODE=true` سرور وب هنگام بالا آمدن خودش seed دمو را اجرا می‌کند (با قفل مشاوره‌ای، پس چند نمونهٔ هم‌زمان
+داده را تکرار نمی‌کنند)، صفحهٔ ورود شماره/رمز دمو را نشان می‌دهد و همهٔ صفحه‌ها نوار «حالت دمو» دارند.
+در Compose: `DEMO_MODE=true docker compose up -d --build`. اعتبارسنجی startup ترکیب `DEMO_MODE=true` با
+`NODE_ENV=production` را رد می‌کند؛ برای دموی عمومی `NODE_ENV` را در compose به `development` تغییر دهید.
+
 ## تست
 
 ```bash

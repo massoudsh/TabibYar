@@ -13,6 +13,7 @@ function fakeDatabase() {
     async query(sql, params = []) {
       statements.push(sql.trim().split('\n')[0]);
       if (/^(BEGIN|COMMIT|ROLLBACK)$/i.test(sql.trim())) return { rows: [] };
+      if (/pg_advisory_(un)?lock/.test(sql)) return { rows: [] };
       if (/SELECT c\.id AS clinic_id/.test(sql)) return { rows: [] };
       if (/INSERT INTO clinics/.test(sql)) return { rows: [{ id: 'clinic-1' }] };
       if (/INSERT INTO clinicians/.test(sql)) return { rows: [{ id: 'clinician-1' }] };
@@ -49,7 +50,8 @@ test('seed-demo fills every table, logs structured events and is idempotent', as
     assert.ok(database.tables[table]?.length > 0, `${table} should be populated`);
   }
   assert.equal(database.tables.patients.length, 20);
-  assert.equal(database.statements.at(-1), 'COMMIT');
+  assert.ok(database.statements.includes('COMMIT'));
+  assert.equal(database.statements.at(-1), 'SELECT pg_advisory_unlock($1)');
 
   // اجرای دوباره: بیماران قبلی حذف و از نو ساخته می‌شوند، نه اضافه.
   const second = fakeDatabase();
