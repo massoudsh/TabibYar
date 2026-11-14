@@ -275,6 +275,7 @@ main {
   .ambient::before, .ambient::after { animation: none; }
   .glass-interactive, button, a { transition: none; }
   .glass-interactive:hover { transform: none; }
+  .bar { transition: none; }
 }
 
 /* ============================================================
@@ -478,6 +479,23 @@ textarea { resize: vertical; }
 .compact-list a:hover { color: var(--color-primary); }
 .compact-list span { color: var(--color-text-muted); font-size: 0.78rem; }
 
+/* نمودار ستونی روند (بدون کتابخانهٔ JS؛ ارتفاع ستون‌ها با متغیر --bar-height) */
+.trend-panel { margin-bottom: var(--space-4); }
+.chart-legend { display: flex; gap: var(--space-3); margin: 0; padding: 0; list-style: none; color: var(--color-text-muted); font-size: 0.75rem; }
+.chart-legend li { display: flex; align-items: center; gap: var(--space-1); }
+.legend-swatch { width: 10px; height: 10px; border-radius: 3px; }
+.legend-visits { background: var(--color-primary); }
+.legend-approved { background: var(--color-accent); opacity: 0.55; }
+.bar-chart { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--space-2); align-items: end; height: 190px; padding-top: var(--space-3); }
+.bar-group { display: flex; height: 100%; flex-direction: column; align-items: center; justify-content: flex-end; gap: var(--space-1); }
+.bar-stack { display: flex; width: 100%; height: 100%; align-items: flex-end; justify-content: center; gap: 3px; }
+.bar { display: block; width: 42%; min-height: 2px; height: var(--bar-height, 0%); border-radius: 4px 4px 0 0; transition: height var(--motion-base) var(--easing); }
+.bar-visits { background: linear-gradient(180deg, #0c9487, var(--color-primary-dark)); }
+.bar-approved { background: var(--color-accent); opacity: 0.5; }
+.bar-value { color: var(--color-text); font-size: 0.72rem; font-weight: 700; }
+.bar-label { color: var(--color-text-muted); font-size: 0.66rem; white-space: nowrap; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
 .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--space-4); }
 .metric-card { display: flex; min-height: 130px; padding: var(--space-4); flex-direction: column; justify-content: space-between; }
 .metric-label { color: var(--color-text-muted); font-size: 0.86rem; }
@@ -569,6 +587,8 @@ details p { white-space: pre-wrap; }
   main { width: calc(100% - 1rem); margin-top: var(--space-3); margin-bottom: calc(var(--tabbar-height) + 2rem); }
   .card, .dashboard-panel, .auth-box { padding: var(--space-4); }
   .summary-grid { gap: var(--space-2); }
+  .bar-chart { gap: 2px; height: 150px; }
+  .bar-label { font-size: 0.58rem; }
   .summary-card { min-height: 140px; padding: var(--space-3); }
   .search-form { flex-direction: column; }
   .follow-up-item { flex-wrap: wrap; }

@@ -90,7 +90,7 @@ test('all screens render with empty fixtures and shared security locals', async 
   const common = { user: { role: 'physician' }, csrfToken: 'a'.repeat(32), toJalaliString };
   const fixtures = {
     login: { error: null },
-    dashboard: { summary: { today_visits: 0, pending_reviews: 0, open_follow_ups: 0, patients_count: 0 }, followUps: [], recentVisits: [] },
+    dashboard: { summary: { today_visits: 0, pending_reviews: 0, open_follow_ups: 0, patients_count: 0 }, followUps: [], recentVisits: [], trend: [], trendMax: 1 },
     'patients-list': { patients: [], query: '' },
     'patient-new': { consentText: 'رضایت آزمایشی' },
     'patient-history': { patient: { id: 'synthetic', full_name: 'آزمایشی', phone: '', consent_recorded_at: null }, visits: [] },
@@ -114,6 +114,15 @@ test('all screens render with empty fixtures and shared security locals', async 
   assert.match(approved, /<fieldset disabled>/);
   assert.match(approved, /approved snapshot/);
   assert.doesNotMatch(approved, /outdated/);
+  const trend = await ejs.renderFile(`${views}dashboard.ejs`, {
+    ...common, ...fixtures.dashboard,
+    trend: [{ day: '2026-11-13', visits: 4, approved: 2 }, { day: '2026-11-14', visits: 0, approved: 0 }],
+    trendMax: 4,
+  });
+  assert.match(trend, /--bar-height: 100%/);
+  assert.match(trend, /--bar-height: 0%/);
+  assert.match(trend, /<table class="visually-hidden">/);
+  assert.doesNotMatch(trend, /<script>/);
   const header = await ejs.renderFile(`${views}partials/header.ejs`, { ...common, section: 'dashboard' });
   assert.match(header, /aria-current="page"/);
   assert.doesNotMatch(header, /aria-current=&#/);

@@ -10,6 +10,7 @@ cp .env.example .env   # مقداردهی DATABASE_URL, JWT_SECRET, ENCRYPTION_K
 npm install
 npm run migrate        # اجرای db/migrations/*.sql روی DATABASE_URL
 npm run seed           # ساخت کلینیک/ادمین اولیه — ADMIN_PHONE=... ADMIN_PASSWORD=... npm run seed
+npm run seed:demo      # دادهٔ نمایشی: ۲۰ بیمار با ویزیت، دارو، پیگیری، پیامک و audit (فقط دمو)
 npm start               # سرور وب روی PORT (پیش‌فرض 3000)
 npm run worker          # در ترمینال جدا — worker صف پردازش ساخت‌دهی (ایشو #6)
 ```
@@ -17,6 +18,20 @@ npm run worker          # در ترمینال جدا — worker صف پرداز�
 ## اجرا با Docker Compose
 
 از داخل همین پوشه: `docker compose up --build -d`. فایل `docker-compose.yaml` همان stack ریشهٔ مخزن است و `DATABASE_URL`، `JWT_SECRET`، `ENCRYPTION_KEY` و `POSTGRES_PASSWORD` را از `.env` می‌خواند (نمونه در `.env.example` ریشه). چون هر دو فایل نام پروژهٔ یکسانی دارند، فقط یکی از دو مسیر را استفاده کنید تا دو stack جدا روی یک نام ساخته نشود. راهنمای کامل در README ریشه است.
+
+## دادهٔ نمایشی (دمو)
+
+`npm run seed:demo` یک کلینیک دمو، کاربر `admin` و ۲۰ بیمار ساختگی با پروندهٔ کامل می‌سازد تا داشبورد،
+فهرست بیماران، پرونده، پیگیری‌ها و شاخص‌های ادمین با دادهٔ واقع‌نما نمایش داده شوند:
+
+- ۲۴ ویزیت در ۳۰ روز اخیر با وضعیت‌های `draft`/`reviewed`/`approved` (چند ویزیت امروز)، پیش‌نویس ساخت‌یافتهٔ معتبر،
+  نسخهٔ تأییدشده (بخشی بدون ویرایش و بخشی ویرایش‌شده)، داروها، پیگیری‌های باز/انجام‌شده، هشدارها،
+  یادآوری پیامکی زمان‌بندی‌شده، jobهای انجام‌شده و audit log کامل (`created`/`edited`/`approved`/`sent_to_patient`).
+- ورود پیش‌فرض: `09120000000` / `Demo@TabibYar1405` (با `DEMO_PHONE` و `DEMO_PASSWORD` قابل تغییر).
+- اجرای دوباره idempotent است: فقط بیماران با شمارهٔ `091210000xx` حذف و بازسازی می‌شوند؛ به دادهٔ واقعی دست نمی‌زند.
+- همهٔ درج‌ها در یک تراکنش‌اند و لاگ ساخت‌یافتهٔ JSON (`seed_started`، `demo_rows_built`، `seed_completed`، `seed_failed`)
+  با `runId` و شمارش هر جدول چاپ می‌شود — قابل جمع‌آوری در همان مسیر لاگ سرویس.
+- در Docker: `docker compose run --rm web node src/db/seed-demo.js` (پس از `migrate`).
 
 ## تست
 

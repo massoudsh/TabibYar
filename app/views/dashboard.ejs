@@ -46,6 +46,37 @@
       </a>
     </section>
 
+    <section class="glass dashboard-panel trend-panel" aria-labelledby="trend-heading">
+      <div class="panel-heading">
+        <div><p class="eyebrow">۱۴ روز اخیر</p><h2 id="trend-heading">روند ویزیت و تأیید</h2></div>
+        <ul class="chart-legend" aria-hidden="true">
+          <li><span class="legend-swatch legend-visits"></span>ویزیت</li>
+          <li><span class="legend-swatch legend-approved"></span>تأییدشده</li>
+        </ul>
+      </div>
+      <div class="bar-chart" role="img" aria-label="نمودار ستونی ویزیت‌های ثبت‌شده و تأییدشده در ۱۴ روز اخیر">
+        <% trend.forEach(function(point) { %>
+          <div class="bar-group">
+            <div class="bar-stack">
+              <span class="bar bar-visits" style="--bar-height: <%= Math.round((point.visits / trendMax) * 100) %>%" title="<%= toJalaliString(point.day) %>: <%= point.visits %> ویزیت"></span>
+              <span class="bar bar-approved" style="--bar-height: <%= Math.round((point.approved / trendMax) * 100) %>%" title="<%= toJalaliString(point.day) %>: <%= point.approved %> تأیید"></span>
+            </div>
+            <span class="bar-value"><%= point.visits %></span>
+            <span class="bar-label"><%= toJalaliString(point.day, { day: 'numeric', month: 'numeric' }) %></span>
+          </div>
+        <% }) %>
+      </div>
+      <table class="visually-hidden">
+        <caption>دادهٔ نمودار روند ۱۴ روز اخیر</caption>
+        <thead><tr><th scope="col">روز</th><th scope="col">ویزیت</th><th scope="col">تأییدشده</th></tr></thead>
+        <tbody>
+          <% trend.forEach(function(point) { %>
+            <tr><th scope="row"><%= toJalaliString(point.day) %></th><td><%= point.visits %></td><td><%= point.approved %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </section>
+
     <section class="dashboard-columns">
       <div class="glass dashboard-panel">
         <div class="panel-heading"><div><p class="eyebrow">کارهای بعدی</p><h2>پیگیری‌های باز</h2></div><a href="/follow-ups">همه</a></div>
