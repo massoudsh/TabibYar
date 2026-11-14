@@ -11,12 +11,28 @@ for (const warning of demoModeWarnings()) {
 
 // حالت دمو: پیش از پذیرش درخواست، دادهٔ نمایشی ۲۰ بیمار ساخته/بازسازی می‌شود.
 // خطای seed سرور را متوقف نمی‌کند؛ فقط لاگ می‌شود تا صفحهٔ ورود در دسترس بماند.
+// سه تلاش با فاصلهٔ کوتاه تا دیتابیسی که دیر آماده می‌شود باعث ورود ناموفق نشود.
 if (isDemoMode()) {
-  try {
-    const { counts } = await runSeed();
-    console.log(JSON.stringify({ event: 'demo_mode_seeded', counts }));
-  } catch (error) {
-    console.error(JSON.stringify({ event: 'demo_mode_seed_failed', error: error?.message || String(error) }));
+  let seeded = false;
+  for (let attempt = 1; attempt <= 3 && !seeded; attempt++) {
+    try {
+      const { counts } = await runSeed();
+      console.log(JSON.stringify({ event: 'demo_mode_seeded', counts }));
+      seeded = true;
+    } catch (error) {
+      console.error(JSON.stringify({
+        event: 'demo_mode_seed_failed',
+        attempt,
+        error: error?.message || String(error),
+      }));
+      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+  if (!seeded) {
+    console.error(JSON.stringify({
+      event: 'demo_mode_seed_missing',
+      detail: 'دادهٔ دمو ساخته نشد؛ ورود با حساب دمو ممکن نیست.',
+    }));
   }
 }
 

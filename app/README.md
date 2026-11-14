@@ -37,9 +37,12 @@ npm run worker          # در ترمینال جدا — worker صف پرداز�
 
 با `DEMO_MODE=true` سرور وب هنگام بالا آمدن خودش seed دمو را اجرا می‌کند (با قفل مشاوره‌ای، پس چند نمونهٔ هم‌زمان
 داده را تکرار نمی‌کنند)، صفحهٔ ورود شماره/رمز دمو را نشان می‌دهد و همهٔ صفحه‌ها نوار «حالت دمو» دارند.
-در Compose: `DEMO_MODE=true docker compose up -d --build`. حالت دمو در `NODE_ENV=production` هم مجاز است
-(برای دموی عمومی)، ولی startup هشدار `demo_mode_warning` را در لاگ وب و worker ثبت می‌کند. برای هر محیط
-غیرنمایشی `DEMO_MODE=false` بگذارید و `DEMO_PASSWORD` را از مقدار پیش‌فرض تغییر دهید.
+در Compose پیش‌فرض `DEMO_MODE` روشن است، پس `docker compose up -d --build` بدون هیچ متغیر اضافه‌ای بلافاصله
+قابل ورود است (`DEMO_MODE=false` برای خاموش‌کردن). حالت دمو در `NODE_ENV=production` هم مجاز است (دموی عمومی)،
+ولی startup هشدار `demo_mode_warning` را در لاگ وب و worker ثبت می‌کند. اگر حساب دمو از قبل وجود داشته باشد،
+رمز آن با `DEMO_PASSWORD` فعلی همگام می‌شود (فقط اگر کلینیک همان کلینیک دمو باشد).
+
+برای عیب‌یابی ورود: `docker compose logs web | grep demo_mode` — باید `demo_mode_seeded` با ۲۰ بیمار دیده شود.
 
 ## تست
 

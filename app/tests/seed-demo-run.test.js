@@ -6,7 +6,7 @@ import { runSeed } from '../src/db/seed-demo.js';
 
 process.env.ENCRYPTION_KEY ||= Buffer.alloc(32, 7).toString('base64');
 
-function fakeDatabase() {
+function fakeDatabase({ existingClinician = [] } = {}) {
   const tables = {};
   const statements = [];
   const client = {
@@ -14,7 +14,7 @@ function fakeDatabase() {
       statements.push(sql.trim().split('\n')[0]);
       if (/^(BEGIN|COMMIT|ROLLBACK)$/i.test(sql.trim())) return { rows: [] };
       if (/pg_advisory_(un)?lock/.test(sql)) return { rows: [] };
-      if (/SELECT c\.id AS clinic_id/.test(sql)) return { rows: [] };
+      if (/SELECT c\.id AS clinic_id/.test(sql)) return { rows: existingClinician };
       if (/INSERT INTO clinics/.test(sql)) return { rows: [{ id: 'clinic-1' }] };
       if (/INSERT INTO clinicians/.test(sql)) return { rows: [{ id: 'clinician-1' }] };
       if (/DELETE FROM patients/.test(sql)) return { rows: [] };
@@ -81,4 +81,23 @@ test('seed-demo rolls back and reports seed_failed on database errors', async ()
     /connection lost/
   );
   assert.ok(database.statements.includes('ROLLBACK'));
+});
+
+test('re-running the seed resets the password of the demo account only', async () => {
+  const demo = fakeDatabase({
+    existingClinician: [{ clinic_id: 'clinic-1', clinic_name: 'کلینیک دمو طبیب‌یار', clinician_id: 'clinician-1', role: 'physician' }],
+  });
+  const events = [];
+  const result = await runSeed({ pool: demo, password: 'Rotated@1405', log: (line) => events.push(JSON.parse(line)) });
+  assert.equal(result.phone, '09120000000');
+  assert.ok(demo.statements.some((sql) => sql.startsWith('UPDATE clinicians')));
+  assert.ok(events.some((event) => event.event === 'demo_clinician_credentials_reset'));
+  assert.ok(!demo.statements.some((sql) => sql.startsWith('INSERT INTO clinicians')), 'existing clinician must not be duplicated');
+
+  const realClinic = fakeDatabase({
+    existingClinician: [{ clinic_id: 'clinic-9', clinic_name: 'کلینیک واقعی', clinician_id: 'clinician-9', role: 'admin' }],
+  });
+  const realEvents = [];
+  await runSeed({ pool: realClinic, log: (line) => realEvents.push(JSON.parse(line)) });
+  assert.ok(realEvents.some((event) => event.event === 'demo_clinician_password_kept'));
 });

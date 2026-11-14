@@ -46,14 +46,26 @@ function createLogger({ runId, startedAt, out = console.log, err = console.error
 
 async function ensureDemoClinician(client, { phone, password, log }) {
   const { rows: existing } = await client.query(
-    `SELECT c.id AS clinic_id, cl.id AS clinician_id
+    `SELECT c.id AS clinic_id, c.name AS clinic_name, cl.id AS clinician_id, cl.role
      FROM clinicians cl JOIN clinics c ON c.id = cl.clinic_id
      WHERE cl.phone = $1 ORDER BY cl.created_at LIMIT 1`,
     [phone]
   );
   if (existing.length) {
-    log('demo_clinician_reused', { clinicId: existing[0].clinic_id, clinicianId: existing[0].clinician_id });
-    return existing[0];
+    const { clinic_id: clinicId, clinician_id: clinicianId, clinic_name: clinicName, role } = existing[0];
+    log('demo_clinician_reused', { clinicId, clinicianId });
+    // حساب دمو باید همیشه با DEMO_PASSWORD فعلی قابل ورود باشد؛ فقط کلینیک دمو بازنویسی می‌شود
+    // تا رمز یک حساب واقعی که تصادفاً همین شماره را دارد تغییر نکند.
+    if (clinicName === DEMO_CLINIC_NAME) {
+      await client.query(
+        `UPDATE clinicians SET password_hash = $2, role = 'admin', specialty = $3 WHERE id = $1`,
+        [clinicianId, await hashPassword(password), DEMO_SPECIALTY]
+      );
+      log('demo_clinician_credentials_reset', { clinicianId, previousRole: role });
+    } else {
+      log('demo_clinician_password_kept', { clinicId, reason: 'clinic_is_not_demo' });
+    }
+    return { clinic_id: clinicId, clinician_id: clinicianId };
   }
 
   const { rows: clinicRows } = await client.query(
