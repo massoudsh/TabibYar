@@ -595,3 +595,114 @@ details p { white-space: pre-wrap; }
   .search-form { flex-direction: column; }
   .follow-up-item { flex-wrap: wrap; }
 }
+
+/* ==========================================================
+   خلاصهٔ پیش از ویزیت، زمان‌نما، ارجاع منبع، پیش‌نویس کدگذاری
+   ========================================================== */
+.brief-panel {
+  margin-block: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.brief-meta { color: var(--color-text-muted); font-size: 0.85rem; }
+.brief-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.brief-card {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-subtle);
+}
+.brief-card h3 { margin-top: 0; font-size: 0.95rem; }
+.brief-list { margin: 0; padding-inline-start: 1.1rem; font-size: 0.9rem; }
+.brief-list li + li { margin-top: var(--space-1); }
+.brief-alerts li { color: var(--danger-text); }
+
+.timeline { margin-top: var(--space-5); }
+.timeline-list {
+  position: relative;
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  list-style: none;
+  border-inline-start: 2px solid var(--border-strong);
+}
+.timeline-list li {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-2);
+  font-size: 0.9rem;
+}
+.timeline-dot {
+  position: absolute;
+  inset-inline-start: -1.5rem;
+  top: calc(var(--space-2) + 0.35em);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+.timeline-label { font-weight: 600; }
+
+.evidence {
+  margin: calc(var(--space-1) * -1) 0 var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-inline-start: 3px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+.evidence-label { font-weight: 700; color: var(--color-primary-dark); }
+
+.coding-box {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-subtle);
+}
+.coding-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.coding-table th, .coding-table td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+}
+.coding-table code { font-weight: 700; color: var(--color-primary-dark); }
+
+.handout-link { margin-block: var(--space-3); }
+
+/* برگهٔ چاپی بیمار */
+.handout-page { background: #fff; }
+.handout {
+  max-width: 720px;
+  margin: var(--space-4) auto;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  color: #111;
+}
+.handout-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-3); border-bottom: 2px solid var(--color-primary); padding-bottom: var(--space-3); }
+.handout-meta p { margin: 0 0 var(--space-1); font-size: 0.9rem; }
+.handout-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.handout-table th, .handout-table td { padding: var(--space-1) var(--space-2); border: 1px solid #ddd; text-align: start; }
+.handout-list { padding-inline-start: 1.2rem; }
+.handout-footer { margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid #ddd; font-size: 0.78rem; color: #555; }
+.handout-actions { display: flex; gap: var(--space-2); justify-content: center; margin: var(--space-3) auto var(--space-5); }
+
+@media print {
+  .no-print, .app-header, .tabbar { display: none !important; }
+  .handout-page { background: #fff; }
+  .handout { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; }
+  main { width: 100%; margin: 0; }
+  body { background: #fff; }
+  a { color: inherit; text-decoration: none; }
+}

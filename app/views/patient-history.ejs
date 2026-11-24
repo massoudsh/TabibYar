@@ -18,6 +18,61 @@
 
     <p><a href="/visits/new">+ ثبت ویزیت جدید</a></p>
 
+    <section class="brief-panel" aria-labelledby="brief-heading">
+      <h2 id="brief-heading">خلاصهٔ پیش از ویزیت</h2>
+      <p class="brief-meta">
+        تعداد ویزیت‌های ثبت‌شده: <%= brief.visitCount %>
+        <% if (brief.lastApproved) { %>— آخرین ویزیت تأییدشده: <%= toJalaliString(brief.lastApproved.visit_date) %><% } %>
+      </p>
+      <div class="brief-grid">
+        <div class="brief-card">
+          <h3>آخرین خلاصه</h3>
+          <% if (brief.lastApproved && brief.lastApproved.approved_content) { %>
+            <p><%= brief.lastApproved.approved_content.patient_summary %></p>
+            <a href="/visits/<%= brief.lastApproved.id %>/review">مشاهدهٔ ویزیت</a>
+          <% } else { %>
+            <p class="list-empty">ویزیت تأییدشده‌ای ثبت نشده است.</p>
+          <% } %>
+        </div>
+        <div class="brief-card">
+          <h3>داروهای فعال</h3>
+          <% if (brief.activeMedications.length) { %>
+            <ul class="brief-list">
+              <% brief.activeMedications.forEach(function(m) { %>
+                <li><strong><%= m.name %></strong><% if (m.dosage) { %> — <%= m.dosage %><% } %></li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p class="list-empty">داروی فعالی ثبت نشده است.</p>
+          <% } %>
+        </div>
+        <div class="brief-card">
+          <h3>پیگیری‌های باز</h3>
+          <% if (brief.openFollowUps.length) { %>
+            <ul class="brief-list">
+              <% brief.openFollowUps.forEach(function(f) { %>
+                <li><%= f.description %><% if (f.due_date) { %> <span class="list-meta">— <%= toJalaliString(f.due_date) %></span><% } %></li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p class="list-empty">پیگیری باز وجود ندارد.</p>
+          <% } %>
+        </div>
+        <div class="brief-card">
+          <h3>هشدارها</h3>
+          <% if (brief.alerts.length) { %>
+            <ul class="brief-list brief-alerts">
+              <% brief.alerts.forEach(function(a) { %>
+                <li><%= a.description %> <span class="list-meta">— <%= toJalaliString(a.created_at) %></span></li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p class="list-empty">هشداری ثبت نشده است.</p>
+          <% } %>
+        </div>
+      </div>
+    </section>
+
     <h2>تاریخچهٔ ویزیت‌ها</h2>
     <% if (!visits.length) { %>
       <p class="list-empty">هنوز ویزیتی ثبت نشده است.</p>
@@ -35,6 +90,25 @@
         </li>
       <% }) %>
     </ul>
+
+    <section class="timeline" aria-labelledby="timeline-heading">
+      <h2 id="timeline-heading">رویدادهای اخیر پرونده</h2>
+      <% if (!timeline.length) { %>
+        <p class="list-empty">رویدادی ثبت نشده است.</p>
+      <% } else { %>
+        <ol class="timeline-list">
+          <% const actionLabels = { created: 'ثبت پرونده', viewed: 'مشاهده', edited: 'ویرایش', approved: 'تأیید نهایی', sent_to_patient: 'ارسال به بیمار', rag_query: 'پرسش از دستیار' }; %>
+          <% const entityLabels = { patient: 'بیمار', visit: 'ویزیت', follow_up_item: 'پیگیری' }; %>
+          <% timeline.forEach(function(event) { %>
+            <li>
+              <span class="timeline-dot" aria-hidden="true"></span>
+              <span class="timeline-label"><%= actionLabels[event.action] || event.action %></span>
+              <span class="list-meta"><%= entityLabels[event.entity_type] || event.entity_type %> — <%= toJalaliString(event.created_at) %></span>
+            </li>
+          <% }) %>
+        </ol>
+      <% } %>
+    </section>
   </main>
 </body>
 </html>

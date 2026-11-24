@@ -11,6 +11,8 @@ import { getSMSProvider, buildPatientSummarySMS } from '../services/smsAdapter.j
 import { answerQuestion } from '../services/rag/ragAgent.js';
 import { getVisitTemplates } from '../services/prompts.js';
 import { AI_DRAFT_DISCLAIMER, DIFFERENTIAL_DIAGNOSIS_DISCLAIMER } from '../lib/disclaimers.js';
+import { linkEvidence } from '../services/evidence.js';
+import { suggestCodes } from '../services/coding.js';
 
 export const visitsRouter = Router();
 visitsRouter.use(authenticate);
@@ -215,12 +217,49 @@ visitsRouter.get('/visits/:id/review', async (req, res) => {
 
   await writeAuditLog({ entityType: 'visit', entityId: visit.id, action: 'viewed', actorId: req.user.sub });
 
+  const currentNote = visit.approved_content || visit.ai_draft;
   res.render('visit-review', {
     visit,
     changesSincePrevious,
+    // ارجاع هر بخش به جملهٔ متن خام (source-linking) و پیش‌نویس کدگذاری.
+    evidence: linkEvidence({ rawInput: visit.raw_input, note: currentNote }),
+    codeSuggestions: suggestCodes(currentNote),
     disclaimer: AI_DRAFT_DISCLAIMER,
     ddxDisclaimer: DIFFERENTIAL_DIAGNOSIS_DISCLAIMER,
   });
+});
+
+// برگهٔ چاپی بیمار: نسخهٔ تأییدشده به زبان ساده، برای چاپ یا تحویل به بیمار.
+// فقط ویزیت approved؛ پیش‌نویس هرگز برای بیمار چاپ نمی‌شود.
+visitsRouter.get('/visits/:id/handout', async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT v.id, v.status, v.visit_date, cn.approved_content, p.full_name AS patient_name,
+            c.name AS clinic_name, cl.full_name AS clinician_name
+     FROM visits v
+     JOIN clinical_notes cn ON cn.visit_id = v.id
+     JOIN patients p ON p.id = v.patient_id
+     JOIN clinicians cl ON cl.id = v.clinician_id
+     JOIN clinics c ON c.id = cl.clinic_id
+     WHERE v.id = $1 AND v.clinician_id = $2`,
+    [req.params.id, req.user.sub]
+  );
+  const visit = rows[0];
+  if (!visit) return res.status(404).send('ویزیت یافت نشد');
+  if (visit.status !== 'approved' || !visit.approved_content) {
+    return res.status(409).send('فقط ویزیت تأییدشده قابل چاپ برای بیمار است');
+  }
+
+  const { rows: followUps } = await pool.query(
+    'SELECT description, due_date, status FROM follow_up_items WHERE visit_id = $1 ORDER BY due_date NULLS LAST',
+    [visit.id]
+  );
+
+  await writeAuditLog({
+    entityType: 'visit', entityId: visit.id, action: 'viewed', actorId: req.user.sub,
+    metadata: { source: 'patient_handout' },
+  });
+
+  res.render('visit-handout', { visit, followUps });
 });
 
 // ایشو #8 (ادامه): ذخیرهٔ ویرایش پزشک روی پیش‌نویس، بدون تأیید نهایی هنوز.

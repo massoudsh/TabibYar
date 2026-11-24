@@ -80,6 +80,57 @@ patientsRouter.get('/patients/:id', async (req, res) => {
     [patient.id, req.user.sub]
   );
 
+  // خلاصهٔ پیش از ویزیت (pre-visit brief): پزشک پیش از ورود بیمار، تصویر یک‌صفحه‌ای می‌بیند.
+  const [medicationsResult, followUpsResult, alertsResult, auditResult] = await Promise.all([
+    pool.query(
+      `SELECT m.name, m.dosage, m.instructions, v.visit_date
+       FROM medications m JOIN visits v ON v.id = m.visit_id
+       WHERE v.patient_id = $1 AND v.clinician_id = $2
+       ORDER BY v.visit_date DESC, m.created_at`,
+      [patient.id, req.user.sub]
+    ),
+    pool.query(
+      `SELECT f.id, f.description, f.due_date, f.status
+       FROM follow_up_items f JOIN visits v ON v.id = f.visit_id
+       WHERE v.patient_id = $1 AND v.clinician_id = $2
+       ORDER BY CASE f.status WHEN 'pending' THEN 0 ELSE 1 END, f.due_date NULLS LAST`,
+      [patient.id, req.user.sub]
+    ),
+    pool.query(
+      `SELECT a.description, a.created_at FROM alerts a JOIN visits v ON v.id = a.visit_id
+       WHERE v.patient_id = $1 AND v.clinician_id = $2
+       ORDER BY a.created_at DESC LIMIT 5`,
+      [patient.id, req.user.sub]
+    ),
+    pool.query(
+      `SELECT al.action, al.entity_type, al.created_at, al.metadata
+       FROM audit_logs al
+       WHERE (al.entity_type = 'patient' AND al.entity_id = $1)
+          OR (al.entity_type = 'visit' AND al.entity_id IN (
+                SELECT id FROM visits WHERE patient_id = $1 AND clinician_id = $2))
+          OR (al.entity_type = 'follow_up_item' AND al.entity_id IN (
+                SELECT f.id FROM follow_up_items f JOIN visits v ON v.id = f.visit_id
+                WHERE v.patient_id = $1 AND v.clinician_id = $2))
+       ORDER BY al.created_at DESC LIMIT 20`,
+      [patient.id, req.user.sub]
+    ),
+  ]);
+
+  // داروی فعال = آخرین نسخهٔ تأییدشده (ویزیت‌های قدیمی‌تر ممکن است داروی قطع‌شده داشته باشند).
+  const latestApproved = visits.find((visit) => visit.status === 'approved');
+  const latestMedicationNames = new Set(
+    (latestApproved?.approved_content?.medications || []).map((m) => m.name)
+  );
+  const brief = {
+    lastApproved: latestApproved || null,
+    activeMedications: latestMedicationNames.size
+      ? medicationsResult.rows.filter((row) => latestMedicationNames.has(row.name))
+      : medicationsResult.rows.slice(0, 8),
+    openFollowUps: followUpsResult.rows.filter((row) => row.status === 'pending'),
+    alerts: alertsResult.rows,
+    visitCount: visits.length,
+  };
+
   await writeAuditLog({
     entityType: 'patient',
     entityId: patient.id,
@@ -87,5 +138,5 @@ patientsRouter.get('/patients/:id', async (req, res) => {
     actorId: req.user.sub,
   });
 
-  res.render('patient-history', { patient, visits });
+  res.render('patient-history', { patient, visits, brief, timeline: auditResult.rows });
 });

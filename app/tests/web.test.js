@@ -93,11 +93,15 @@ test('all screens render with empty fixtures and shared security locals', async 
     dashboard: { summary: { today_visits: 0, pending_reviews: 0, open_follow_ups: 0, patients_count: 0 }, followUps: [], recentVisits: [], trend: [], trendMax: 1 },
     'patients-list': { patients: [], query: '' },
     'patient-new': { consentText: 'رضایت آزمایشی' },
-    'patient-history': { patient: { id: 'synthetic', full_name: 'آزمایشی', phone: '', consent_recorded_at: null }, visits: [] },
+    'patient-history': {
+      patient: { id: 'synthetic', full_name: 'آزمایشی', phone: '', consent_recorded_at: null }, visits: [],
+      brief: { lastApproved: null, activeMedications: [], openFollowUps: [], alerts: [], visitCount: 0 }, timeline: [],
+    },
     'visit-new': { patients: [], specialty: 'internal_medicine', templates: [{ label: 'قالب', text: '</script><script>bad()</script>' }] },
     'follow-ups': { followUps: [] },
     analytics: { metrics: { visits_last_30_days: 0, approved_notes_last_30_days: 0, unchanged_approvals_last_30_days: 0, average_approval_minutes: 0, sms_sent_last_30_days: 0, follow_ups_completed: 0, follow_ups_total: 0 } },
-    'visit-review': { visit: { id: 'synthetic', status: 'draft', ai_draft: null }, changesSincePrevious: { hasPrevious: false }, disclaimer: 'پیش‌نویس', ddxDisclaimer: 'پیش‌نویس' },
+    'visit-review': { visit: { id: 'synthetic', status: 'draft', ai_draft: null }, changesSincePrevious: { hasPrevious: false }, disclaimer: 'پیش‌نویس', ddxDisclaimer: 'پیش‌نویس', evidence: {}, codeSuggestions: [] },
+    'visit-handout': { visit: { id: 'synthetic', patient_name: 'آزمایشی', clinic_name: 'کلینیک', clinician_name: 'پزشک', visit_date: '2026-11-14', approved_content: { patient_summary: 'خلاصه', medications: [], warnings: [] } }, followUps: [] },
   };
   for (const [name, data] of Object.entries(fixtures)) {
     const html = await ejs.renderFile(`${views}${name}.ejs`, { ...common, ...data });
@@ -114,6 +118,39 @@ test('all screens render with empty fixtures and shared security locals', async 
   assert.match(approved, /<fieldset disabled>/);
   assert.match(approved, /approved snapshot/);
   assert.doesNotMatch(approved, /outdated/);
+  const reviewed = await ejs.renderFile(`${views}visit-review.ejs`, {
+    ...common, ...fixtures['visit-review'],
+    visit: { id: 'synthetic', status: 'draft', ai_draft: { history: 'شرح حال', findings: 'یافته', treatment_plan: 'درمان', patient_summary: 'خلاصه' } },
+    evidence: { history: { quote: 'بیمار از دو هفته پیش سرفه دارد', sentenceIndex: 0, score: 3 } },
+    codeSuggestions: [{ code: 'J45.9', label: 'آسم، نامشخص', matched: ['سرفه'] }],
+  });
+  assert.match(reviewed, /class="evidence"/);
+  assert.match(reviewed, /بیمار از دو هفته پیش سرفه دارد/);
+  assert.match(reviewed, /class="coding-box"/);
+  assert.match(reviewed, /J45\.9/);
+  assert.doesNotMatch(reviewed, /برگهٔ چاپی بیمار/);
+  const briefHistory = await ejs.renderFile(`${views}patient-history.ejs`, {
+    ...common, ...fixtures['patient-history'],
+    patient: { id: 'synthetic', full_name: 'آزمایشی', phone: '', consent_recorded_at: null },
+    brief: {
+      lastApproved: { id: 'v1', visit_date: '2026-11-10', approved_content: { patient_summary: 'خلاصهٔ قبلی' } },
+      activeMedications: [{ name: 'متفورمین', dosage: '۵۰۰ میلی‌گرم' }],
+      openFollowUps: [{ description: 'آزمایش قند ناشتا', due_date: '2026-12-01' }],
+      alerts: [{ description: 'افزایش فشار خون', created_at: '2026-11-10' }],
+      visitCount: 1,
+    },
+    timeline: [{ action: 'approved', entity_type: 'visit', created_at: '2026-11-10' }],
+  });
+  assert.match(briefHistory, /class="brief-panel"/);
+  assert.match(briefHistory, /متفورمین/);
+  assert.match(briefHistory, /آزمایش قند ناشتا/);
+  assert.match(briefHistory, /class="timeline"/);
+  assert.match(briefHistory, /تأیید نهایی/);
+  const approvedHandout = await ejs.renderFile(`${views}visit-review.ejs`, {
+    ...common, ...fixtures['visit-review'],
+    visit: { id: 'v1', status: 'approved', ai_draft: { history: 'approved snapshot' }, approved_content: { history: 'approved snapshot' } },
+  });
+  assert.match(approvedHandout, /href="\/visits\/v1\/handout"/);
   const trend = await ejs.renderFile(`${views}dashboard.ejs`, {
     ...common, ...fixtures.dashboard,
     trend: [{ day: '2026-11-13', visits: 4, approved: 2 }, { day: '2026-11-14', visits: 0, approved: 0 }],

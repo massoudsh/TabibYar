@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>برگهٔ بیمار — <%= visit.patient_name %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="handout-page">
+  <main id="main-content" class="handout">
+    <header class="handout-header">
+      <div>
+        <p class="eyebrow"><%= visit.clinic_name %></p>
+        <h1>برگهٔ خلاصهٔ ویزیت</h1>
+      </div>
+      <div class="handout-meta">
+        <p>بیمار: <strong><%= visit.patient_name %></strong></p>
+        <p>تاریخ: <%= toJalaliString(visit.visit_date) %></p>
+        <p>پزشک: <%= visit.clinician_name %></p>
+      </div>
+    </header>
+
+    <section>
+      <h2>خلاصه</h2>
+      <p><%= visit.approved_content.patient_summary %></p>
+    </section>
+
+    <% if (visit.approved_content.medications && visit.approved_content.medications.length) { %>
+      <section>
+        <h2>داروها</h2>
+        <table class="handout-table">
+          <thead><tr><th scope="col">نام دارو</th><th scope="col">دوز</th><th scope="col">دستور مصرف</th></tr></thead>
+          <tbody>
+            <% visit.approved_content.medications.forEach(function(m) { %>
+              <tr><td><%= m.name %></td><td><%= m.dosage || '—' %></td><td><%= m.instructions || '—' %></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </section>
+    <% } %>
+
+    <% if (followUps.length) { %>
+      <section>
+        <h2>پیگیری‌ها</h2>
+        <ul class="handout-list">
+          <% followUps.forEach(function(item) { %>
+            <li>
+              <%= item.description %>
+              <% if (item.due_date) { %><span class="list-meta"> — <%= toJalaliString(item.due_date) %></span><% } %>
+            </li>
+          <% }) %>
+        </ul>
+      </section>
+    <% } %>
+
+    <% if (visit.approved_content.warnings && visit.approved_content.warnings.length) { %>
+      <section class="warning-box">
+        <h2>در صورت بروز این علائم فوراً تماس بگیرید</h2>
+        <ul class="handout-list">
+          <% visit.approved_content.warnings.forEach(function(w) { %><li><%= w %></li><% }) %>
+        </ul>
+      </section>
+    <% } %>
+
+    <footer class="handout-footer">
+      <p>این برگه خلاصهٔ یادداشت تأییدشدهٔ پزشک شماست و جایگزین ویزیت حضوری یا توصیهٔ تلفنی نیست.</p>
+    </footer>
+  </main>
+
+  <div class="handout-actions no-print">
+    <button type="button" class="button button-primary" data-print>چاپ</button>
+    <a class="btn-secondary" href="/visits/<%= visit.id %>/review">بازگشت به ویزیت</a>
+  </div>
+  <script src="/js/handout.js"></script>
+</body>
+</html>

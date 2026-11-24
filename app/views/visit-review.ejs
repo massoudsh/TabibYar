@@ -66,12 +66,19 @@
       <form id="draft-form" data-visit-id="<%= visit.id %>" data-original="<%= JSON.stringify(d) %>">
         <fieldset <%= visit.status === 'approved' ? 'disabled' : '' %>>
         <legend>محتوای ویزیت</legend>
+        <% const sectionEvidence = function(name) { return evidence && evidence[name]; }; %>
         <label>شرح‌حال (history)
           <textarea name="history" rows="3"><%= d.history %></textarea>
         </label>
+        <% if (sectionEvidence('history')) { %>
+          <p class="evidence"><span class="evidence-label">منبع در متن شما:</span> «<%= sectionEvidence('history').quote %>»</p>
+        <% } %>
         <label>یافته‌ها (findings)
           <textarea name="findings" rows="2"><%= d.findings %></textarea>
         </label>
+        <% if (sectionEvidence('findings')) { %>
+          <p class="evidence"><span class="evidence-label">منبع در متن شما:</span> «<%= sectionEvidence('findings').quote %>»</p>
+        <% } %>
         <label class="ddx-label">
           تشخیص‌های احتمالی <span class="badge-draft" title="<%= ddxDisclaimer %>">پیش‌نویس</span>
           <textarea name="differential_diagnosis_draft" rows="2"><%= (d.differential_diagnosis_draft || []).join('\n') %></textarea>
@@ -79,6 +86,9 @@
         <label>برنامهٔ درمان (treatment_plan)
           <textarea name="treatment_plan" rows="2"><%= d.treatment_plan %></textarea>
         </label>
+        <% if (sectionEvidence('treatment_plan')) { %>
+          <p class="evidence"><span class="evidence-label">منبع در متن شما:</span> «<%= sectionEvidence('treatment_plan').quote %>»</p>
+        <% } %>
         <section data-editor="medications" aria-label="داروها">
           <h2>داروها</h2>
           <div data-rows>
@@ -119,7 +129,29 @@
         <p id="save-status" role="status" aria-live="polite"></p>
       </form>
 
+      <% if (codeSuggestions && codeSuggestions.length) { %>
+        <section class="coding-box" aria-labelledby="coding-heading">
+          <h2 id="coding-heading">پیش‌نویس کدگذاری (ICD-10)</h2>
+          <p class="rag-disclaimer">پیشنهاد خودکار بر اساس واژه‌های مستندشده؛ کد نهایی صورت‌حساب نیست و فقط با تأیید پزشک قابل استفاده است.</p>
+          <table class="coding-table">
+            <thead><tr><th scope="col">کد</th><th scope="col">عنوان</th><th scope="col">دلیل پیشنهاد</th></tr></thead>
+            <tbody>
+              <% codeSuggestions.forEach(function(s) { %>
+                <tr>
+                  <td dir="ltr"><code><%= s.code %></code></td>
+                  <td><%= s.label %></td>
+                  <td><%= s.matched.join('، ') %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </section>
+      <% } %>
+
       <% if (visit.status === 'approved') { %>
+        <p class="handout-link">
+          <a href="/visits/<%= visit.id %>/handout">برگهٔ چاپی بیمار</a>
+        </p>
         <form method="post" action="/visits/<%= visit.id %>/send-sms">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
           <button type="submit">ارسال خلاصه به بیمار (پیامک)</button>
